@@ -15,7 +15,7 @@ struct LoginCredentials
 program RPC_DB_PROG { 
     version RPC_DB_VER{
         LoginCredentials LOGIN(string) = 1;
-        void LOGOUT() = 2;
+        bool LOGOUT(string) = 2;
         void LOAD() = 3;
         void STORE() = 4;
         void ADD() = 5;

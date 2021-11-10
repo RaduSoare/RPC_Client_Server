@@ -5,20 +5,24 @@
  */
 
 #include "rpc_db.hpp"
+#include<iostream>
+using namespace std;
 
+bool is_logged = false;
 
 void
 rpc_db_prog_1(char *host)
 {
 	CLIENT *clnt;
+
 	LoginCredentials  *result_1;
 	char * login_1_arg = (char*)malloc(sizeof(30));
 	strcpy(login_1_arg, "radu");
-	LoginCredentials  *result_2;
-	char * login_2_arg = (char*)malloc(sizeof(30));
-	strcpy(login_2_arg, "radu");
-	// void  *result_2;
-	// char *logout_1_arg;
+
+
+	bool_t  *result_2;
+	char * logout_1_arg = (char*)malloc(sizeof(30));
+	strcpy(logout_1_arg, "radu");
 	// void  *result_3;
 	// char *load_1_arg;
 	// void  *result_4;
@@ -45,23 +49,25 @@ rpc_db_prog_1(char *host)
 #endif	/* DEBUG */
 
 	result_1 = login_1(&login_1_arg, clnt);
-	if (result_1 == (LoginCredentials *) NULL) {
+	if (result_1->session_key == 0) {
+		printf("eroare\n");
 		clnt_perror (clnt, "call failed");
+	} else {
+		cout << "Logged in" << endl;
+		is_logged = true;
 	}
-	printf("%s %ld asdasdsa\n", result_1->username, result_1->session_key);
-
-	result_2 = login_1(&login_2_arg, clnt);
-	// if (result_2 == (LoginCredentials *) NULL) {
-	// 	printf("eroare\n");
-	// 	clnt_perror (clnt, "call failed");
-	// }
-	printf("%s %ld asdasdsa\n", result_2->username, result_2->session_key);
+	
 
 
-	// result_2 = logout_1((void*)&logout_1_arg, clnt);
-	// if (result_2 == (void *) NULL) {
-	// 	clnt_perror (clnt, "call failed");
-	// }
+	result_2 = logout_1(&logout_1_arg, clnt);
+	if (*result_2 == false) {
+		clnt_perror (clnt, "call failed");
+	} else {
+		cout << "Logged out" << endl;
+		is_logged = false;
+	}
+
+
 	// result_3 = load_1((void*)&load_1_arg, clnt);
 	// if (result_3 == (void *) NULL) {
 	// 	clnt_perror (clnt, "call failed");
