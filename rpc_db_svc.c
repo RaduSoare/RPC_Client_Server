@@ -46,13 +46,13 @@ rpc_db_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 
 	case LOAD:
 		_xdr_argument = (xdrproc_t) xdr_void;
-		_xdr_result = (xdrproc_t) xdr_void;
+		_xdr_result = (xdrproc_t) xdr_bool;
 		local = (char *(*)(char *, struct svc_req *)) load_1_svc;
 		break;
 
 	case STORE:
 		_xdr_argument = (xdrproc_t) xdr_void;
-		_xdr_result = (xdrproc_t) xdr_void;
+		_xdr_result = (xdrproc_t) xdr_bool;
 		local = (char *(*)(char *, struct svc_req *)) store_1_svc;
 		break;
 

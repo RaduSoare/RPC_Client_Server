@@ -78,28 +78,32 @@ logout_1_svc(char **argp, struct svc_req *rqstp)
 	return &result;
 }
 
-void *
+bool_t *
 load_1_svc(void *argp, struct svc_req *rqstp)
 {
-	static char * result;
+	static bool_t  result;
+	result = true;
 
 	/*
 	 * insert server code here
 	 */
+	cout<< "load funcc" << endl;
 
-	return (void *) &result;
+	return &result;
 }
 
-void *
+bool_t *
 store_1_svc(void *argp, struct svc_req *rqstp)
 {
-	static char * result;
+	static bool_t result;
+	result = true;
 
 	/*
 	 * insert server code here
 	 */
+	cout<< "store funcc" << endl;
 
-	return (void *) &result;
+	return &result;
 }
 
 void *

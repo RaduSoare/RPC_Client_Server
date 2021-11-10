@@ -38,11 +38,11 @@ extern  LoginCredentials * login_1_svc(char **, struct svc_req *);
 extern  bool_t * logout_1(char **, CLIENT *);
 extern  bool_t * logout_1_svc(char **, struct svc_req *);
 #define LOAD 3
-extern  void * load_1(void *, CLIENT *);
-extern  void * load_1_svc(void *, struct svc_req *);
+extern  bool_t * load_1(void *, CLIENT *);
+extern  bool_t * load_1_svc(void *, struct svc_req *);
 #define STORE 4
-extern  void * store_1(void *, CLIENT *);
-extern  void * store_1_svc(void *, struct svc_req *);
+extern  bool_t * store_1(void *, CLIENT *);
+extern  bool_t * store_1_svc(void *, struct svc_req *);
 #define ADD 5
 extern  void * add_1(void *, CLIENT *);
 extern  void * add_1_svc(void *, struct svc_req *);
@@ -71,11 +71,11 @@ extern  LoginCredentials * login_1_svc();
 extern  bool_t * logout_1();
 extern  bool_t * logout_1_svc();
 #define LOAD 3
-extern  void * load_1();
-extern  void * load_1_svc();
+extern  bool_t * load_1();
+extern  bool_t * load_1_svc();
 #define STORE 4
-extern  void * store_1();
-extern  void * store_1_svc();
+extern  bool_t * store_1();
+extern  bool_t * store_1_svc();
 #define ADD 5
 extern  void * add_1();
 extern  void * add_1_svc();

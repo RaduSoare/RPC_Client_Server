@@ -16,8 +16,8 @@ program RPC_DB_PROG {
     version RPC_DB_VER{
         LoginCredentials LOGIN(string) = 1;
         bool LOGOUT(string) = 2;
-        void LOAD() = 3;
-        void STORE() = 4;
+        bool LOAD() = 3;
+        bool STORE() = 4;
         void ADD() = 5;
         void DEL() = 6;
         void UPDATE() = 7;

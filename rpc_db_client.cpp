@@ -7,23 +7,19 @@
 #include "rpc_db.hpp"
 #include <iostream>
 #include <string>
+#include <vector>
+#include <fstream>
+#include <sstream>
 using namespace std;
 
 bool is_logged = false;
+
 
 void
 rpc_db_prog_1(char *host)
 {
 	CLIENT *clnt;
 
-	LoginCredentials  *result_1;
-	char * login_1_arg = (char*)malloc(sizeof(30));
-	strcpy(login_1_arg, "radu");
-
-
-	bool_t  *result_2;
-	char * logout_1_arg = (char*)malloc(sizeof(30));
-	strcpy(logout_1_arg, "radu");
 	// void  *result_3;
 	// char *load_1_arg;
 	// void  *result_4;
@@ -49,24 +45,6 @@ rpc_db_prog_1(char *host)
 	}
 #endif	/* DEBUG */
 
-	result_1 = login_1(&login_1_arg, clnt);
-	if (result_1->session_key == 0) {
-		printf("eroare\n");
-		clnt_perror (clnt, "call failed");
-	} else {
-		cout << "Logged in" << endl;
-		is_logged = true;
-	}
-	
-
-
-	result_2 = logout_1(&logout_1_arg, clnt);
-	if (*result_2 == false) {
-		clnt_perror (clnt, "call failed");
-	} else {
-		cout << "Logged out" << endl;
-		is_logged = false;
-	}
 
 
 	// result_3 = load_1((void*)&load_1_arg, clnt);
@@ -123,10 +101,76 @@ rpc_db_prog_1(char *host)
 
 #define LOGIN_CMD "login"
 #define LOGOUT_CMD "logout"
+#define LOAD_CMD "load"
+#define STORE_CMD "store"
+
+vector<SensorData*> memDB;
+
+
+void show_data_from_mem() {
+
+	
+	for (auto & elem : memDB) {
+		cout << elem->dataId << endl;
+		for (int i = 0; i < elem->noValues; i++) {
+			cout << elem->values[i] << " ";
+		}
+		cout << endl;
+	}
+			
+}
+
+void load_data_from_disk(string filepath) {
+	
+	string line;
+	fstream fs;
+
+	fs.open(filepath, std::ios_base::in | std::ios::app);
+
+	while(getline(fs, line)) {
+
+		SensorData* current_data = new SensorData;
+		std::istringstream iss(line);
+		float i;
+		iss >> current_data->dataId;
+		iss >> current_data->noValues;
+		current_data->values = new float[current_data->noValues];
+		int index = 0;
+		while (iss >> i) {             
+			current_data->values[index++] = i;
+		}
+		memDB.push_back(current_data);
+	}
+
+	fs.close();
+
+	show_data_from_mem();
+}
+
+void store_data_to_disk(string filepath) {
+
+	cout << memDB.size() << endl;
+
+	ofstream ofs (filepath, std::ofstream::in | std::ofstream::trunc);
+
+	for (auto & elem : memDB) {
+		ofs << elem->dataId << " ";
+		ofs << elem->noValues << " ";
+		for (int i = 0; i < elem->noValues; i++) {
+			ofs << elem->values[i] << " ";
+		}
+		ofs << endl;
+	}
+
+	ofs.close();
+}
+
+
 
 int main (int argc, char *argv[]) 
 {
 	CLIENT *clnt;
+	
 
 	if (argc < 2) {
 		printf ("usage: %s server_host\n", argv[0]);
@@ -142,7 +186,7 @@ int main (int argc, char *argv[])
 #endif	/* DEBUG */
 
 	string input_command;
-
+	string filepath;
 	LoginCredentials  *login_result;
 	char * login_arg = (char*)malloc(sizeof(30));
 
@@ -152,8 +196,6 @@ int main (int argc, char *argv[])
 		
 		if (input_command.find(LOGIN_CMD) != string::npos) {
 
-			
-			
 
 			// Get username from login command
 			string username = input_command.substr(input_command.find(" ") + 1, input_command.length() - 1);
@@ -172,10 +214,13 @@ int main (int argc, char *argv[])
 			} else {
 
 				login_result = login_1(&login_arg, clnt);
+				// If session_key is 0, it means that there was a problem
 				if (login_result->session_key == 0) {
 					clnt_perror (clnt, "call failed");
 				} else {
 					cout << "Logged in: " << login_result->username << endl;
+					// Compute the path to the database on the disk
+					filepath = username + ".rpcdb";
 					is_logged = true;
 				}
 
@@ -191,10 +236,36 @@ int main (int argc, char *argv[])
 				clnt_perror (clnt, "call failed");
 			} else {
 				cout << "Logged out" << endl;
+				memDB.clear();
 				is_logged = false;
 			}
 
+		} else if (input_command == LOAD_CMD) {
 			
+			bool_t  *load_result = load_1((void*)NULL, clnt);
+			if (*load_result == false) {
+				clnt_perror (clnt, "call failed");
+				
+			}
+			memDB.clear();
+			load_data_from_disk(filepath);
+
+		} else if (input_command == STORE_CMD) {
+			bool_t  *store_result = store_1((void*)NULL, clnt);
+			if (*store_result == false) {
+				clnt_perror (clnt, "call failed");
+				
+			}
+
+			SensorData* current_data = new SensorData;
+			current_data->dataId = 99;
+			current_data->noValues = 1;
+			current_data->values = new float[current_data->noValues];
+			current_data->values[0] = 90;
+
+			memDB.push_back(current_data);
+			
+			store_data_to_disk(filepath);
 		}
 	}
 	
@@ -205,3 +276,6 @@ int main (int argc, char *argv[])
 	clnt_destroy (clnt);
 #endif	 /* DEBUG */
 }
+
+
+// de facut functie de destroy care elibereaza memoria si la values
