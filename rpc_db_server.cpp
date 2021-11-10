@@ -41,7 +41,7 @@ login_1_svc(char **argp, struct svc_req *rqstp)
 	 */
 
 
-	 cout << "Se conecteaza " << *argp << endl;
+	cout << "Se conecteaza " << *argp << endl;
 	if (check_if_logged(*argp)) {
 		cout << "Already logged" << endl;
 		return &result;

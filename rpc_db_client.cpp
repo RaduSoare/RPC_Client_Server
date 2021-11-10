@@ -5,7 +5,8 @@
  */
 
 #include "rpc_db.hpp"
-#include<iostream>
+#include <iostream>
+#include <string>
 using namespace std;
 
 bool is_logged = false;
@@ -106,16 +107,101 @@ rpc_db_prog_1(char *host)
 }
 
 
-int
-main (int argc, char *argv[])
+// int
+// main (int argc, char *argv[])
+// {
+// 	char *host;
+
+// 	if (argc < 2) {
+// 		printf ("usage: %s server_host\n", argv[0]);
+// 		exit (1);
+// 	}
+// 	host = argv[1];
+// 	rpc_db_prog_1 (host);
+// exit (0);
+// }
+
+#define LOGIN_CMD "login"
+#define LOGOUT_CMD "logout"
+
+int main (int argc, char *argv[]) 
 {
-	char *host;
+	CLIENT *clnt;
 
 	if (argc < 2) {
 		printf ("usage: %s server_host\n", argv[0]);
 		exit (1);
 	}
-	host = argv[1];
-	rpc_db_prog_1 (host);
-exit (0);
+
+#ifndef	DEBUG
+	clnt = clnt_create (argv[1], RPC_DB_PROG, RPC_DB_VER, "udp");
+	if (clnt == NULL) {
+		clnt_pcreateerror (argv[1]);
+		exit (1);
+	}
+#endif	/* DEBUG */
+
+	string input_command;
+
+	LoginCredentials  *login_result;
+	char * login_arg = (char*)malloc(sizeof(30));
+
+	while (true)
+	{
+		getline(std::cin, input_command);
+		
+		if (input_command.find(LOGIN_CMD) != string::npos) {
+
+			
+			
+
+			// Get username from login command
+			string username = input_command.substr(input_command.find(" ") + 1, input_command.length() - 1);
+			
+			//Check for correct command
+			if (username.empty() || (input_command.find(" ") == string::npos)) {
+				cout << "Invalid username" << endl;
+				continue;
+			}
+
+			strcpy(login_arg, username.c_str());
+
+			if (is_logged == true) {
+				cout << "Already logged" << endl;
+				continue;
+			} else {
+
+				login_result = login_1(&login_arg, clnt);
+				if (login_result->session_key == 0) {
+					clnt_perror (clnt, "call failed");
+				} else {
+					cout << "Logged in: " << login_result->username << endl;
+					is_logged = true;
+				}
+
+			}
+		} else if (input_command == LOGOUT_CMD) {
+			if (is_logged == false) {
+				cout << "You are not logged in" << endl;
+				continue;
+			}
+			bool_t  *logout_result;
+			logout_result = logout_1(&(login_result->username), clnt);
+			if (*logout_result == false) {
+				clnt_perror (clnt, "call failed");
+			} else {
+				cout << "Logged out" << endl;
+				is_logged = false;
+			}
+
+			
+		}
+	}
+	
+
+
+
+#ifndef	DEBUG
+	clnt_destroy (clnt);
+#endif	 /* DEBUG */
 }
