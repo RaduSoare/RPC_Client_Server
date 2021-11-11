@@ -22,6 +22,11 @@ rpc_db_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 	union {
 		char *login_1_arg;
 		char *logout_1_arg;
+		SensorData add_1_arg;
+		int del_1_arg;
+		SensorData update_1_arg;
+		int read_1_arg;
+		int get_stat_1_arg;
 	} argument;
 	char *result;
 	xdrproc_t _xdr_argument, _xdr_result;
@@ -57,38 +62,38 @@ rpc_db_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		break;
 
 	case ADD:
-		_xdr_argument = (xdrproc_t) xdr_void;
-		_xdr_result = (xdrproc_t) xdr_void;
+		_xdr_argument = (xdrproc_t) xdr_SensorData;
+		_xdr_result = (xdrproc_t) xdr_bool;
 		local = (char *(*)(char *, struct svc_req *)) add_1_svc;
 		break;
 
 	case DEL:
-		_xdr_argument = (xdrproc_t) xdr_void;
-		_xdr_result = (xdrproc_t) xdr_void;
+		_xdr_argument = (xdrproc_t) xdr_int;
+		_xdr_result = (xdrproc_t) xdr_bool;
 		local = (char *(*)(char *, struct svc_req *)) del_1_svc;
 		break;
 
 	case UPDATE:
-		_xdr_argument = (xdrproc_t) xdr_void;
-		_xdr_result = (xdrproc_t) xdr_void;
+		_xdr_argument = (xdrproc_t) xdr_SensorData;
+		_xdr_result = (xdrproc_t) xdr_bool;
 		local = (char *(*)(char *, struct svc_req *)) update_1_svc;
 		break;
 
 	case READ:
-		_xdr_argument = (xdrproc_t) xdr_void;
-		_xdr_result = (xdrproc_t) xdr_void;
+		_xdr_argument = (xdrproc_t) xdr_int;
+		_xdr_result = (xdrproc_t) xdr_bool;
 		local = (char *(*)(char *, struct svc_req *)) read_1_svc;
 		break;
 
 	case GET_STAT:
-		_xdr_argument = (xdrproc_t) xdr_void;
-		_xdr_result = (xdrproc_t) xdr_void;
+		_xdr_argument = (xdrproc_t) xdr_int;
+		_xdr_result = (xdrproc_t) xdr_bool;
 		local = (char *(*)(char *, struct svc_req *)) get_stat_1_svc;
 		break;
 
 	case GET_STAT_ALL:
 		_xdr_argument = (xdrproc_t) xdr_void;
-		_xdr_result = (xdrproc_t) xdr_void;
+		_xdr_result = (xdrproc_t) xdr_bool;
 		local = (char *(*)(char *, struct svc_req *)) get_stat_all_1_svc;
 		break;
 

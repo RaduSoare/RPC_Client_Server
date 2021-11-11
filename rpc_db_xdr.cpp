@@ -10,11 +10,13 @@ xdr_SensorData (XDR *xdrs, SensorData *objp)
 {
 	register int32_t *buf;
 
+	int i;
 	 if (!xdr_int (xdrs, &objp->dataId))
 		 return FALSE;
 	 if (!xdr_int (xdrs, &objp->noValues))
 		 return FALSE;
-	 if (!xdr_pointer (xdrs, (char **)&objp->values, sizeof (float), (xdrproc_t) xdr_float))
+	 if (!xdr_vector (xdrs, (char *)objp->values, 30,
+		sizeof (float), (xdrproc_t) xdr_float))
 		 return FALSE;
 	return TRUE;
 }

@@ -2,7 +2,7 @@ struct SensorData
 {
     int dataId;
     int noValues;
-    float* values;
+    float values[30];
 };
 
 struct LoginCredentials
@@ -18,12 +18,12 @@ program RPC_DB_PROG {
         bool LOGOUT(string) = 2;
         bool LOAD() = 3;
         bool STORE() = 4;
-        void ADD() = 5;
-        void DEL() = 6;
-        void UPDATE() = 7;
-        void READ() = 8;
-        void GET_STAT() = 9;
-        void GET_STAT_ALL() = 10;
+        bool ADD(SensorData) = 5;
+        bool DEL(int) = 6;
+        bool UPDATE(SensorData) = 7;
+        bool READ(int) = 8;
+        bool GET_STAT(int) = 9;
+        bool GET_STAT_ALL() = 10;
     } = 1;
 } = 0xCAFEBABE;
 

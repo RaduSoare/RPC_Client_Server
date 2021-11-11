@@ -6,8 +6,15 @@
 
 #include<iostream>
 #include <unordered_map>
+#include <vector>
+#include <tuple>
+#include <unordered_map>
 using namespace std;
 #include "rpc_db.hpp"
+
+vector<SensorData*> memDB;
+
+unordered_map<int, vector<float>> database;
 
 
 
@@ -106,74 +113,93 @@ store_1_svc(void *argp, struct svc_req *rqstp)
 	return &result;
 }
 
-void *
-add_1_svc(void *argp, struct svc_req *rqstp)
+void print_database() {
+	for (auto & entry : database) {
+		cout << entry.first << " " << entry.second.size() << " ";
+		for (auto & value : entry.second) {
+			cout << value << " ";
+		}
+		cout<< "======" << endl;
+	}
+}
+
+bool_t *
+add_1_svc(SensorData *argp, struct svc_req *rqstp)
 {
-	static char * result;
+	static bool_t  result;
+	result = true;
+
+	// daca exista deja data cu id-ul ala, trebuie intors false
+	vector<float> values(argp->values, argp->values + argp->noValues);
+	database[argp->dataId] = values;
+
+	print_database();
+	
+	
+
+	return &result;
+}
+
+
+
+bool_t *
+del_1_svc(int *argp, struct svc_req *rqstp)
+{
+	static bool_t  result;
+	result = true;
+	/*
+	 * insert server code here
+	 */
+
+	return &result;
+}
+
+bool_t *
+update_1_svc(SensorData *argp, struct svc_req *rqstp)
+{
+	static bool_t  result;
+	result = true;
+	/*
+	 * insert server code here
+	 */
+
+	cout << argp->dataId;
+
+	return &result;
+}
+
+bool_t *
+read_1_svc(int *argp, struct svc_req *rqstp)
+{
+	static bool_t  result;
 
 	/*
 	 * insert server code here
 	 */
 
-	return (void *) &result;
+	return &result;
 }
 
-void *
-del_1_svc(void *argp, struct svc_req *rqstp)
+bool_t *
+get_stat_1_svc(int *argp, struct svc_req *rqstp)
 {
-	static char * result;
+	static bool_t  result;
 
 	/*
 	 * insert server code here
 	 */
 
-	return (void *) &result;
+	return &result;
 }
 
-void *
-update_1_svc(void *argp, struct svc_req *rqstp)
-{
-	static char * result;
-
-	/*
-	 * insert server code here
-	 */
-
-	return (void *) &result;
-}
-
-void *
-read_1_svc(void *argp, struct svc_req *rqstp)
-{
-	static char * result;
-
-	/*
-	 * insert server code here
-	 */
-
-	return (void *) &result;
-}
-
-void *
-get_stat_1_svc(void *argp, struct svc_req *rqstp)
-{
-	static char * result;
-
-	/*
-	 * insert server code here
-	 */
-
-	return (void *) &result;
-}
-
-void *
+bool_t *
 get_stat_all_1_svc(void *argp, struct svc_req *rqstp)
 {
-	static char * result;
+	static bool_t  result;
 
 	/*
 	 * insert server code here
 	 */
 
-	return (void *) &result;
+	return &result;
 }

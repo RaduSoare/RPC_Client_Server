@@ -17,7 +17,7 @@ extern "C" {
 struct SensorData {
 	int dataId;
 	int noValues;
-	float *values;
+	float values[30];
 };
 typedef struct SensorData SensorData;
 
@@ -44,23 +44,23 @@ extern  bool_t * load_1_svc(void *, struct svc_req *);
 extern  bool_t * store_1(void *, CLIENT *);
 extern  bool_t * store_1_svc(void *, struct svc_req *);
 #define ADD 5
-extern  void * add_1(void *, CLIENT *);
-extern  void * add_1_svc(void *, struct svc_req *);
+extern  bool_t * add_1(SensorData *, CLIENT *);
+extern  bool_t * add_1_svc(SensorData *, struct svc_req *);
 #define DEL 6
-extern  void * del_1(void *, CLIENT *);
-extern  void * del_1_svc(void *, struct svc_req *);
+extern  bool_t * del_1(int *, CLIENT *);
+extern  bool_t * del_1_svc(int *, struct svc_req *);
 #define UPDATE 7
-extern  void * update_1(void *, CLIENT *);
-extern  void * update_1_svc(void *, struct svc_req *);
+extern  bool_t * update_1(SensorData *, CLIENT *);
+extern  bool_t * update_1_svc(SensorData *, struct svc_req *);
 #define READ 8
-extern  void * read_1(void *, CLIENT *);
-extern  void * read_1_svc(void *, struct svc_req *);
+extern  bool_t * read_1(int *, CLIENT *);
+extern  bool_t * read_1_svc(int *, struct svc_req *);
 #define GET_STAT 9
-extern  void * get_stat_1(void *, CLIENT *);
-extern  void * get_stat_1_svc(void *, struct svc_req *);
+extern  bool_t * get_stat_1(int *, CLIENT *);
+extern  bool_t * get_stat_1_svc(int *, struct svc_req *);
 #define GET_STAT_ALL 10
-extern  void * get_stat_all_1(void *, CLIENT *);
-extern  void * get_stat_all_1_svc(void *, struct svc_req *);
+extern  bool_t * get_stat_all_1(void *, CLIENT *);
+extern  bool_t * get_stat_all_1_svc(void *, struct svc_req *);
 extern int rpc_db_prog_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
@@ -77,23 +77,23 @@ extern  bool_t * load_1_svc();
 extern  bool_t * store_1();
 extern  bool_t * store_1_svc();
 #define ADD 5
-extern  void * add_1();
-extern  void * add_1_svc();
+extern  bool_t * add_1();
+extern  bool_t * add_1_svc();
 #define DEL 6
-extern  void * del_1();
-extern  void * del_1_svc();
+extern  bool_t * del_1();
+extern  bool_t * del_1_svc();
 #define UPDATE 7
-extern  void * update_1();
-extern  void * update_1_svc();
+extern  bool_t * update_1();
+extern  bool_t * update_1_svc();
 #define READ 8
-extern  void * read_1();
-extern  void * read_1_svc();
+extern  bool_t * read_1();
+extern  bool_t * read_1_svc();
 #define GET_STAT 9
-extern  void * get_stat_1();
-extern  void * get_stat_1_svc();
+extern  bool_t * get_stat_1();
+extern  bool_t * get_stat_1_svc();
 #define GET_STAT_ALL 10
-extern  void * get_stat_all_1();
-extern  void * get_stat_all_1_svc();
+extern  bool_t * get_stat_all_1();
+extern  bool_t * get_stat_all_1_svc();
 extern int rpc_db_prog_1_freeresult ();
 #endif /* K&R C */
 

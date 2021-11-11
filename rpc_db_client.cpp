@@ -20,22 +20,16 @@ rpc_db_prog_1(char *host)
 {
 	CLIENT *clnt;
 
-	// void  *result_3;
-	// char *load_1_arg;
-	// void  *result_4;
-	// char *store_1_arg;
-	// void  *result_5;
-	// char *add_1_arg;
-	// void  *result_6;
-	// char *del_1_arg;
-	// void  *result_7;
-	// char *update_1_arg;
-	// void  *result_8;
-	// char *read_1_arg;
-	// void  *result_9;
-	// char *get_stat_1_arg;
-	// void  *result_10;
-	// char *get_stat_all_1_arg;
+	
+	
+	bool_t  *result_7;
+	SensorData  update_1_arg;
+	bool_t  *result_8;
+	int  read_1_arg;
+	bool_t  *result_9;
+	int  get_stat_1_arg;
+	bool_t  *result_10;
+	char *get_stat_all_1_arg;
 
 #ifndef	DEBUG
 	clnt = clnt_create (host, RPC_DB_PROG, RPC_DB_VER, "udp");
@@ -47,38 +41,27 @@ rpc_db_prog_1(char *host)
 
 
 
-	// result_3 = load_1((void*)&load_1_arg, clnt);
-	// if (result_3 == (void *) NULL) {
+	
+	// result_6 = del_1(&del_1_arg, clnt);
+	// if (result_6 == (bool_t *) NULL) {
 	// 	clnt_perror (clnt, "call failed");
 	// }
-	// result_4 = store_1((void*)&store_1_arg, clnt);
-	// if (result_4 == (void *) NULL) {
+	// result_7 = update_1(&update_1_arg, clnt);
+	// if (result_7 == (bool_t *) NULL) {
 	// 	clnt_perror (clnt, "call failed");
 	// }
-	// result_5 = add_1((void*)&add_1_arg, clnt);
-	// if (result_5 == (void *) NULL) {
+	// result_8 = read_1(&read_1_arg, clnt);
+	// if (result_8 == (bool_t *) NULL) {
 	// 	clnt_perror (clnt, "call failed");
 	// }
-	// result_6 = del_1((void*)&del_1_arg, clnt);
-	// if (result_6 == (void *) NULL) {
-	// 	clnt_perror (clnt, "call failed");
-	// }
-	// result_7 = update_1((void*)&update_1_arg, clnt);
-	// if (result_7 == (void *) NULL) {
-	// 	clnt_perror (clnt, "call failed");
-	// }
-	// result_8 = read_1((void*)&read_1_arg, clnt);
-	// if (result_8 == (void *) NULL) {
-	// 	clnt_perror (clnt, "call failed");
-	// }
-	// result_9 = get_stat_1((void*)&get_stat_1_arg, clnt);
-	// if (result_9 == (void *) NULL) {
+	// result_9 = get_stat_1(&get_stat_1_arg, clnt);
+	// if (result_9 == (bool_t *) NULL) {
 	// 	clnt_perror (clnt, "call failed");
 	// }
 	// result_10 = get_stat_all_1((void*)&get_stat_all_1_arg, clnt);
-	// if (result_10 == (void *) NULL) {
+	// if (result_10 == (bool_t *) NULL) {
 	// 	clnt_perror (clnt, "call failed");
-	//}
+	// }
 #ifndef	DEBUG
 	clnt_destroy (clnt);
 #endif	 /* DEBUG */
@@ -103,6 +86,12 @@ rpc_db_prog_1(char *host)
 #define LOGOUT_CMD "logout"
 #define LOAD_CMD "load"
 #define STORE_CMD "store"
+#define ADD_CMD "add"
+#define DEL_CMD "del"
+#define UPDATE_CMD "update"
+#define READ_CMD "read"
+#define GET_STAT_CMD "get_stat"
+#define GET_STAT_ALL_CMD "get_stat_all"
 
 vector<SensorData*> memDB;
 
@@ -134,7 +123,7 @@ void load_data_from_disk(string filepath) {
 		float i;
 		iss >> current_data->dataId;
 		iss >> current_data->noValues;
-		current_data->values = new float[current_data->noValues];
+		
 		int index = 0;
 		while (iss >> i) {             
 			current_data->values[index++] = i;
@@ -190,18 +179,27 @@ int main (int argc, char *argv[])
 	LoginCredentials  *login_result;
 	char * login_arg = (char*)malloc(sizeof(30));
 
+	
+	
+
 	while (true)
 	{
 		getline(std::cin, input_command);
-		
-		if (input_command.find(LOGIN_CMD) != string::npos) {
 
+		std::istringstream iss(input_command);
+		string cmd;
+
+		// Extract the command
+		iss >> cmd;
+
+		if (cmd == LOGIN_CMD) {
 
 			// Get username from login command
-			string username = input_command.substr(input_command.find(" ") + 1, input_command.length() - 1);
+			string username;
+			iss >> username;
 			
 			//Check for correct command
-			if (username.empty() || (input_command.find(" ") == string::npos)) {
+			if (username.empty() ) {
 				cout << "Invalid username" << endl;
 				continue;
 			}
@@ -260,12 +258,49 @@ int main (int argc, char *argv[])
 			SensorData* current_data = new SensorData;
 			current_data->dataId = 99;
 			current_data->noValues = 1;
-			current_data->values = new float[current_data->noValues];
+			//current_data->values = new float[current_data->noValues];
 			current_data->values[0] = 90;
 
 			memDB.push_back(current_data);
 			
 			store_data_to_disk(filepath);
+		} else if (cmd == ADD_CMD) {
+			// De guardat pentru input prost
+			
+
+			SensorData* added_data = new SensorData;
+
+			iss >> added_data->dataId;
+			iss >> added_data->noValues;
+			
+			for (int i = 0; i < added_data->noValues; i++) {
+				iss >> added_data->values[i];
+			}
+
+			bool_t  *add_result = add_1(added_data, clnt);
+			if (*add_result == false) {
+				clnt_perror (clnt, "call failed");
+				continue;
+			}
+			
+
+		} else if (cmd == UPDATE_CMD) {
+			SensorData* updated_data = new SensorData;
+			cout << "update";
+			iss >> updated_data->dataId;
+			iss >> updated_data ->noValues;
+			
+			for (int i = 0; i < updated_data->noValues; i++) {
+				iss >> updated_data->values[i];
+			}
+
+			bool_t  *update_result= update_1(updated_data, clnt);
+			if (*update_result == false) {
+				clnt_perror (clnt, "call failed");
+				continue;
+			}
+
+			
 		}
 	}
 	
