@@ -22,10 +22,7 @@ rpc_db_prog_1(char *host)
 
 	
 	
-	bool_t  *result_7;
-	SensorData  update_1_arg;
-	bool_t  *result_8;
-	int  read_1_arg;
+	
 	bool_t  *result_9;
 	int  get_stat_1_arg;
 	bool_t  *result_10;
@@ -40,20 +37,7 @@ rpc_db_prog_1(char *host)
 #endif	/* DEBUG */
 
 
-
 	
-	// result_6 = del_1(&del_1_arg, clnt);
-	// if (result_6 == (bool_t *) NULL) {
-	// 	clnt_perror (clnt, "call failed");
-	// }
-	// result_7 = update_1(&update_1_arg, clnt);
-	// if (result_7 == (bool_t *) NULL) {
-	// 	clnt_perror (clnt, "call failed");
-	// }
-	// result_8 = read_1(&read_1_arg, clnt);
-	// if (result_8 == (bool_t *) NULL) {
-	// 	clnt_perror (clnt, "call failed");
-	// }
 	// result_9 = get_stat_1(&get_stat_1_arg, clnt);
 	// if (result_9 == (bool_t *) NULL) {
 	// 	clnt_perror (clnt, "call failed");
@@ -286,7 +270,7 @@ int main (int argc, char *argv[])
 
 		} else if (cmd == UPDATE_CMD) {
 			SensorData* updated_data = new SensorData;
-			cout << "update";
+
 			iss >> updated_data->dataId;
 			iss >> updated_data ->noValues;
 			
@@ -296,6 +280,27 @@ int main (int argc, char *argv[])
 
 			bool_t  *update_result= update_1(updated_data, clnt);
 			if (*update_result == false) {
+				clnt_perror (clnt, "call failed");
+				continue;
+			}
+
+		} else if (cmd == DEL_CMD) { 
+			
+			int  del_arg;
+			iss >> del_arg;
+
+			bool_t  *del_result = del_1(&del_arg, clnt);
+			if (*del_result == false) {
+				clnt_perror (clnt, "call failed");
+				continue;
+			} 
+		} else if (cmd == READ_CMD) {
+
+			int  read_arg;
+			iss >> read_arg;
+
+			bool_t  *read_result = read_1(&read_arg, clnt);
+			if (*read_result == false) {
 				clnt_perror (clnt, "call failed");
 				continue;
 			}

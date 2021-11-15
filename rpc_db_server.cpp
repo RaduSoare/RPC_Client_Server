@@ -119,8 +119,14 @@ void print_database() {
 		for (auto & value : entry.second) {
 			cout << value << " ";
 		}
-		cout<< "======" << endl;
+		cout<< endl;
 	}
+	cout<< endl << endl;
+}
+
+void insert_to_database(SensorData *argp) {
+	vector<float> values(argp->values, argp->values + argp->noValues);
+	database[argp->dataId] = values;
 }
 
 bool_t *
@@ -130,10 +136,21 @@ add_1_svc(SensorData *argp, struct svc_req *rqstp)
 	result = true;
 
 	// daca exista deja data cu id-ul ala, trebuie intors false
-	vector<float> values(argp->values, argp->values + argp->noValues);
-	database[argp->dataId] = values;
+	// vector<float> values(argp->values, argp->values + argp->noValues);
+	// database[argp->dataId] = values;
 
-	print_database();
+	auto get_value = database.find(argp->dataId);
+
+	if (get_value != database.end()) {
+		cout << "dataID not found" << endl;
+		result = false;
+	} else {
+		insert_to_database(argp);
+
+		print_database();
+	}
+
+	
 	
 	
 
@@ -151,6 +168,16 @@ del_1_svc(int *argp, struct svc_req *rqstp)
 	 * insert server code here
 	 */
 
+	auto get_value = database.find(*argp);
+
+	if (get_value == database.end()) {
+		cout << "dataID not found" << endl;
+		result = false;
+	} else {
+		database.erase((*argp));
+		print_database();
+	}
+
 	return &result;
 }
 
@@ -163,7 +190,19 @@ update_1_svc(SensorData *argp, struct svc_req *rqstp)
 	 * insert server code here
 	 */
 
-	cout << argp->dataId;
+
+	auto get_value = database.find(argp->dataId);
+
+	if (get_value == database.end()) {
+		cout << "dataID not found" << endl;
+		result = false;
+	} else {
+		database.erase(get_value);
+		insert_to_database(argp);
+		print_database();
+	}
+
+
 
 	return &result;
 }
