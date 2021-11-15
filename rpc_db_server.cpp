@@ -14,15 +14,14 @@ using namespace std;
 
 vector<SensorData*> memDB;
 
-unordered_map<int, vector<float>> database;
+unordered_map<int, vector<float>> database_old;
 
 
+// KEY_SESSION, <DATA_ID, DATA_VECTOR>
+unordered_map<unsigned long, unordered_map<int, vector<float>>> database;
 
 unsigned long current_session_key = 1;
 
-#define LOGIN_LIST_CAPACITY 10
-static LoginCredentials* loggingList;
-int loggingListSize = 0;
 
 static unordered_map<string, unsigned long> loggedMap;
 
@@ -43,26 +42,27 @@ login_1_svc(char **argp, struct svc_req *rqstp)
 	result.username = (char*)malloc(sizeof(30));
 	result.session_key = 0;
 
-	/*
-	 * insert server code here
-	 */
 
-
-	cout << "Se conecteaza " << *argp << endl;
+	// session_key = 0 -> ERROR
+	cout << "Connecting: " << *argp << endl;
 	if (check_if_logged(*argp)) {
 		cout << "Already logged" << endl;
 		return &result;
 	} 
 
 
-	result.username = (char*)malloc(sizeof(30));
+	result.username = new char[30];
 	strcpy(result.username, *argp);
 	result.session_key = current_session_key++;
 
-	std::string username(result.username);
+	// Keep user as logged (using username)
+	string username(result.username);
 	loggedMap[username] = result.session_key;
 
+
 	cout << username << " : " << loggedMap[username] << endl;
+
+	
 
 
 	return &result;
@@ -113,8 +113,8 @@ store_1_svc(void *argp, struct svc_req *rqstp)
 	return &result;
 }
 
-void print_database() {
-	for (auto & entry : database) {
+void print_database_old() {
+	for (auto & entry : database_old) {
 		cout << entry.first << " " << entry.second.size() << " ";
 		for (auto & value : entry.second) {
 			cout << value << " ";
@@ -124,9 +124,9 @@ void print_database() {
 	cout<< endl << endl;
 }
 
-void insert_to_database(SensorData *argp) {
+void insert_to_database_old(SensorData *argp) {
 	vector<float> values(argp->values, argp->values + argp->noValues);
-	database[argp->dataId] = values;
+	database_old[argp->dataId] = values;
 }
 
 bool_t *
@@ -137,17 +137,17 @@ add_1_svc(SensorData *argp, struct svc_req *rqstp)
 
 	// daca exista deja data cu id-ul ala, trebuie intors false
 	// vector<float> values(argp->values, argp->values + argp->noValues);
-	// database[argp->dataId] = values;
+	// database_old[argp->dataId] = values;
 
-	auto get_value = database.find(argp->dataId);
+	auto get_value = database_old.find(argp->dataId);
 
-	if (get_value != database.end()) {
+	if (get_value != database_old.end()) {
 		cout << "dataID not found" << endl;
 		result = false;
 	} else {
-		insert_to_database(argp);
+		insert_to_database_old(argp);
 
-		print_database();
+		print_database_old();
 	}
 
 	
@@ -168,14 +168,14 @@ del_1_svc(int *argp, struct svc_req *rqstp)
 	 * insert server code here
 	 */
 
-	auto get_value = database.find(*argp);
+	auto get_value = database_old.find(*argp);
 
-	if (get_value == database.end()) {
+	if (get_value == database_old.end()) {
 		cout << "dataID not found" << endl;
 		result = false;
 	} else {
-		database.erase((*argp));
-		print_database();
+		database_old.erase((*argp));
+		print_database_old();
 	}
 
 	return &result;
@@ -191,15 +191,15 @@ update_1_svc(SensorData *argp, struct svc_req *rqstp)
 	 */
 
 
-	auto get_value = database.find(argp->dataId);
+	auto get_value = database_old.find(argp->dataId);
 
-	if (get_value == database.end()) {
+	if (get_value == database_old.end()) {
 		cout << "dataID not found" << endl;
 		result = false;
 	} else {
-		database.erase(get_value);
-		insert_to_database(argp);
-		print_database();
+		database_old.erase(get_value);
+		insert_to_database_old(argp);
+		print_database_old();
 	}
 
 

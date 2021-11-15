@@ -15,56 +15,6 @@ using namespace std;
 bool is_logged = false;
 
 
-void
-rpc_db_prog_1(char *host)
-{
-	CLIENT *clnt;
-
-	
-	
-	
-	bool_t  *result_9;
-	int  get_stat_1_arg;
-	bool_t  *result_10;
-	char *get_stat_all_1_arg;
-
-#ifndef	DEBUG
-	clnt = clnt_create (host, RPC_DB_PROG, RPC_DB_VER, "udp");
-	if (clnt == NULL) {
-		clnt_pcreateerror (host);
-		exit (1);
-	}
-#endif	/* DEBUG */
-
-
-	
-	// result_9 = get_stat_1(&get_stat_1_arg, clnt);
-	// if (result_9 == (bool_t *) NULL) {
-	// 	clnt_perror (clnt, "call failed");
-	// }
-	// result_10 = get_stat_all_1((void*)&get_stat_all_1_arg, clnt);
-	// if (result_10 == (bool_t *) NULL) {
-	// 	clnt_perror (clnt, "call failed");
-	// }
-#ifndef	DEBUG
-	clnt_destroy (clnt);
-#endif	 /* DEBUG */
-}
-
-
-// int
-// main (int argc, char *argv[])
-// {
-// 	char *host;
-
-// 	if (argc < 2) {
-// 		printf ("usage: %s server_host\n", argv[0]);
-// 		exit (1);
-// 	}
-// 	host = argv[1];
-// 	rpc_db_prog_1 (host);
-// exit (0);
-// }
 
 #define LOGIN_CMD "login"
 #define LOGOUT_CMD "logout"
@@ -305,7 +255,7 @@ int main (int argc, char *argv[])
 				continue;
 			}
 
-			
+
 		}
 	}
 	
