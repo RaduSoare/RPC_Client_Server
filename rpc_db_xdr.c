@@ -22,6 +22,42 @@ xdr_SensorData (XDR *xdrs, SensorData *objp)
 }
 
 bool_t
+xdr_SensorDataParam (XDR *xdrs, SensorDataParam *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_SensorData (xdrs, &objp->sensor_data))
+		 return FALSE;
+	 if (!xdr_u_long (xdrs, &objp->session_key))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_IntegerParam (XDR *xdrs, IntegerParam *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_u_long (xdrs, &objp->session_key))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->value))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_StringParam (XDR *xdrs, StringParam *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_u_long (xdrs, &objp->session_key))
+		 return FALSE;
+	 if (!xdr_string (xdrs, &objp->value, ~0))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
 xdr_LoginCredentials (XDR *xdrs, LoginCredentials *objp)
 {
 	register int32_t *buf;
@@ -29,6 +65,33 @@ xdr_LoginCredentials (XDR *xdrs, LoginCredentials *objp)
 	 if (!xdr_string (xdrs, &objp->username, ~0))
 		 return FALSE;
 	 if (!xdr_u_long (xdrs, &objp->session_key))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_Stats (XDR *xdrs, Stats *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_float (xdrs, &objp->min))
+		 return FALSE;
+	 if (!xdr_float (xdrs, &objp->max))
+		 return FALSE;
+	 if (!xdr_float (xdrs, &objp->median))
+		 return FALSE;
+	 if (!xdr_float (xdrs, &objp->mean))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_AllStatsResp (XDR *xdrs, AllStatsResp *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_array (xdrs, (char **)&objp->stats.stats_val, (u_int *) &objp->stats.stats_len, ~0,
+		sizeof (Stats), (xdrproc_t) xdr_Stats))
 		 return FALSE;
 	return TRUE;
 }

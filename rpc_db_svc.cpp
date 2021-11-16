@@ -38,38 +38,38 @@ rpc_db_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		break;
 
 	case LOGOUT:
-		_xdr_argument = (xdrproc_t) xdr_void;
-		_xdr_result = (xdrproc_t) xdr_void;
+		_xdr_argument = (xdrproc_t) xdr_LoginCredentials;
+		_xdr_result = (xdrproc_t) xdr_bool;
 		local = (char *(*)(char *, struct svc_req *)) logout_1_svc;
 		break;
 
 	case LOAD:
-		_xdr_argument = (xdrproc_t) xdr_void;
-		_xdr_result = (xdrproc_t) xdr_void;
+		_xdr_argument = (xdrproc_t) xdr_u_long;
+		_xdr_result = (xdrproc_t) xdr_bool;
 		local = (char *(*)(char *, struct svc_req *)) load_1_svc;
 		break;
 
 	case STORE:
-		_xdr_argument = (xdrproc_t) xdr_void;
-		_xdr_result = (xdrproc_t) xdr_void;
+		_xdr_argument = (xdrproc_t) xdr_u_long;
+		_xdr_result = (xdrproc_t) xdr_bool;
 		local = (char *(*)(char *, struct svc_req *)) store_1_svc;
 		break;
 
 	case ADD:
-		_xdr_argument = (xdrproc_t) xdr_void;
-		_xdr_result = (xdrproc_t) xdr_void;
+		_xdr_argument = (xdrproc_t) xdr_SensorDataParam;
+		_xdr_result = (xdrproc_t) xdr_bool;
 		local = (char *(*)(char *, struct svc_req *)) add_1_svc;
 		break;
 
 	case DEL:
-		_xdr_argument = (xdrproc_t) xdr_void;
-		_xdr_result = (xdrproc_t) xdr_void;
+		_xdr_argument = (xdrproc_t) xdr_IntegerParam;
+		_xdr_result = (xdrproc_t) xdr_bool;
 		local = (char *(*)(char *, struct svc_req *)) del_1_svc;
 		break;
 
 	case UPDATE:
-		_xdr_argument = (xdrproc_t) xdr_void;
-		_xdr_result = (xdrproc_t) xdr_void;
+		_xdr_argument = (xdrproc_t) xdr_SensorDataParam;
+		_xdr_result = (xdrproc_t) xdr_bool;
 		local = (char *(*)(char *, struct svc_req *)) update_1_svc;
 		break;
 

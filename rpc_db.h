@@ -21,11 +21,45 @@ struct SensorData {
 };
 typedef struct SensorData SensorData;
 
+struct SensorDataParam {
+	SensorData sensor_data;
+	u_long session_key;
+};
+typedef struct SensorDataParam SensorDataParam;
+
+struct IntegerParam {
+	u_long session_key;
+	int value;
+};
+typedef struct IntegerParam IntegerParam;
+
+struct StringParam {
+	u_long session_key;
+	char *value;
+};
+typedef struct StringParam StringParam;
+
 struct LoginCredentials {
 	char *username;
 	u_long session_key;
 };
 typedef struct LoginCredentials LoginCredentials;
+
+struct Stats {
+	float min;
+	float max;
+	float median;
+	float mean;
+};
+typedef struct Stats Stats;
+
+struct AllStatsResp {
+	struct {
+		u_int stats_len;
+		Stats *stats_val;
+	} stats;
+};
+typedef struct AllStatsResp AllStatsResp;
 
 #define RPC_DB_PROG 0xCAFEBABE
 #define RPC_DB_VER 1
@@ -38,20 +72,20 @@ extern  LoginCredentials * login_1_svc(char **, struct svc_req *);
 extern  bool_t * logout_1(char **, CLIENT *);
 extern  bool_t * logout_1_svc(char **, struct svc_req *);
 #define LOAD 3
-extern  bool_t * load_1(void *, CLIENT *);
-extern  bool_t * load_1_svc(void *, struct svc_req *);
+extern  bool_t * load_1(u_long *, CLIENT *);
+extern  bool_t * load_1_svc(u_long *, struct svc_req *);
 #define STORE 4
-extern  bool_t * store_1(void *, CLIENT *);
-extern  bool_t * store_1_svc(void *, struct svc_req *);
+extern  bool_t * store_1(u_long *, CLIENT *);
+extern  bool_t * store_1_svc(u_long *, struct svc_req *);
 #define ADD 5
-extern  bool_t * add_1(SensorData *, CLIENT *);
-extern  bool_t * add_1_svc(SensorData *, struct svc_req *);
+extern  bool_t * add_1(SensorDataParam *, CLIENT *);
+extern  bool_t * add_1_svc(SensorDataParam *, struct svc_req *);
 #define DEL 6
-extern  bool_t * del_1(int *, CLIENT *);
-extern  bool_t * del_1_svc(int *, struct svc_req *);
+extern  bool_t * del_1(IntegerParam *, CLIENT *);
+extern  bool_t * del_1_svc(IntegerParam *, struct svc_req *);
 #define UPDATE 7
-extern  bool_t * update_1(SensorData *, CLIENT *);
-extern  bool_t * update_1_svc(SensorData *, struct svc_req *);
+extern  bool_t * update_1(SensorDataParam *, CLIENT *);
+extern  bool_t * update_1_svc(SensorDataParam *, struct svc_req *);
 #define READ 8
 extern  bool_t * read_1(int *, CLIENT *);
 extern  bool_t * read_1_svc(int *, struct svc_req *);
@@ -101,11 +135,21 @@ extern int rpc_db_prog_1_freeresult ();
 
 #if defined(__STDC__) || defined(__cplusplus)
 extern  bool_t xdr_SensorData (XDR *, SensorData*);
+extern  bool_t xdr_SensorDataParam (XDR *, SensorDataParam*);
+extern  bool_t xdr_IntegerParam (XDR *, IntegerParam*);
+extern  bool_t xdr_StringParam (XDR *, StringParam*);
 extern  bool_t xdr_LoginCredentials (XDR *, LoginCredentials*);
+extern  bool_t xdr_Stats (XDR *, Stats*);
+extern  bool_t xdr_AllStatsResp (XDR *, AllStatsResp*);
 
 #else /* K&R C */
 extern bool_t xdr_SensorData ();
+extern bool_t xdr_SensorDataParam ();
+extern bool_t xdr_IntegerParam ();
+extern bool_t xdr_StringParam ();
 extern bool_t xdr_LoginCredentials ();
+extern bool_t xdr_Stats ();
+extern bool_t xdr_AllStatsResp ();
 
 #endif /* K&R C */
 

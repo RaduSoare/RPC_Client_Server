@@ -23,92 +23,107 @@ unordered_map<unsigned long, unordered_map<int, vector<float>>> database;
 unsigned long current_session_key = 1;
 
 
-static unordered_map<string, unsigned long> loggedMap;
+static unordered_map<unsigned long, string> loggedMap;
 
 
-bool check_if_logged(char* username) {
-	string username_str(username);
+// bool check_if_logged(char* username) {
+// 	string username_str(username);
 
-	if (loggedMap.find(username_str) == loggedMap.end())
-		return false;
+// 	if (loggedMap.find(username_str) == loggedMap.end())
+// 		return false;
 	
-	return true;
+// 	return true;
+// }
+
+bool check_if_logged(LoginCredentials* login_credentials) {
+	string username_str(login_credentials->username);
+	if (loggedMap.find(login_credentials->session_key) != loggedMap.end() && loggedMap[login_credentials->session_key] == username_str)
+		return true;
+	
+	return false;
 }
 
 LoginCredentials *
 login_1_svc(char **argp, struct svc_req *rqstp)
 {
 	static LoginCredentials  result;
-	result.username = (char*)malloc(sizeof(30));
-	result.session_key = 0;
+	
 
+	// Initialize result struct
+	result.username = new char[30];
+	strcpy(result.username, *argp);
+	result.session_key = current_session_key;
 
 	// session_key = 0 -> ERROR
 	cout << "Connecting: " << *argp << endl;
-	if (check_if_logged(*argp)) {
+	if (check_if_logged(&result)) {
 		cout << "Already logged" << endl;
+		result.session_key = 0;
 		return &result;
 	} 
 
-
-	result.username = new char[30];
-	strcpy(result.username, *argp);
-	result.session_key = current_session_key++;
-
-	// Keep user as logged (using username)
+	// Keep user as logged (using session_key)
 	string username(result.username);
-	loggedMap[username] = result.session_key;
+	loggedMap[result.session_key] = result.username;
 
+	// Get next available session_key
+	current_session_key++;
 
-	cout << username << " : " << loggedMap[username] << endl;
+	cout << loggedMap[result.session_key] << " : " << loggedMap[result.session_key] << endl;
 
+	return &result;
+}
+
+bool_t *
+logout_1_svc(LoginCredentials *argp, struct svc_req *rqstp)
+{
+	static bool_t  result;
+
+	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
+		return (bool_t*) false;
+	}
+
+	string username_str(argp->username);
+
+	auto get_value = loggedMap.find(argp->session_key);
+
+	if (get_value != loggedMap.end() && loggedMap[argp->session_key] == username_str) {
+		loggedMap.erase(argp->session_key);
+		result = true;
+	} else {
+		result = false;
+	}
 	
 
-
 	return &result;
 }
 
 bool_t *
-logout_1_svc(char **argp, struct svc_req *rqstp)
+load_1_svc(u_long *argp, struct svc_req *rqstp)
 {
 	static bool_t  result;
 	result = true;
 
-	/*
-	 * insert server code here
-	 */
-	std::string username(*argp);
-
-	loggedMap.erase(username);
-
+	if (loggedMap.find(*argp) == loggedMap.end()) {
+		result = false;
+	} else {
+		result = true;
+	}
 
 	return &result;
 }
 
 bool_t *
-load_1_svc(void *argp, struct svc_req *rqstp)
-{
-	static bool_t  result;
-	result = true;
-
-	/*
-	 * insert server code here
-	 */
-	cout<< "load funcc" << endl;
-
-	return &result;
-}
-
-bool_t *
-store_1_svc(void *argp, struct svc_req *rqstp)
+store_1_svc(u_long *argp, struct svc_req *rqstp)
 {
 	static bool_t result;
-	result = true;
 
-	/*
-	 * insert server code here
-	 */
-	cout<< "store funcc" << endl;
+	if (loggedMap.find(*argp) == loggedMap.end()) {
+		result = false;
+	} else {
+		result = true;
+	}
+
 
 	return &result;
 }
@@ -126,83 +141,87 @@ void print_database_old() {
 
 void insert_to_database_old(SensorData *argp) {
 	vector<float> values(argp->values, argp->values + argp->noValues);
+	
 	database_old[argp->dataId] = values;
 }
 
 bool_t *
-add_1_svc(SensorData *argp, struct svc_req *rqstp)
+add_1_svc(SensorDataParam *argp, struct svc_req *rqstp)
 {
 	static bool_t  result;
 	result = true;
 
-	// daca exista deja data cu id-ul ala, trebuie intors false
-	// vector<float> values(argp->values, argp->values + argp->noValues);
-	// database_old[argp->dataId] = values;
-
-	auto get_value = database_old.find(argp->dataId);
-
-	if (get_value != database_old.end()) {
-		cout << "dataID not found" << endl;
+	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
 		result = false;
 	} else {
-		insert_to_database_old(argp);
+		auto get_value = database_old.find(argp->sensor_data.dataId);
 
-		print_database_old();
+		if (get_value != database_old.end()) {
+			cout << "dataID not found" << endl;
+			result = false;
+		} else {
+			insert_to_database_old(&(argp->sensor_data));
+			print_database_old();
+			result = true;
+		}
 	}
-
-	
-	
-	
-
 	return &result;
 }
 
 
 
 bool_t *
-del_1_svc(int *argp, struct svc_req *rqstp)
-{
+del_1_svc(IntegerParam *argp, struct svc_req *rqstp)
+{	
+
 	static bool_t  result;
-	result = true;
-	/*
-	 * insert server code here
-	 */
 
-	auto get_value = database_old.find(*argp);
-
-	if (get_value == database_old.end()) {
-		cout << "dataID not found" << endl;
+	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
 		result = false;
 	} else {
-		database_old.erase((*argp));
-		print_database_old();
+		auto get_value = database_old.find(argp->value);
+
+		if (get_value == database_old.end()) {
+			cout << "dataID not found" << endl;
+			result = false;
+		} else {
+			database_old.erase(argp->value);
+			print_database_old();
+			cout << "aici" << endl;
+			result = true;
+		}
+
 	}
 
+	
+
 	return &result;
+
 }
 
 bool_t *
-update_1_svc(SensorData *argp, struct svc_req *rqstp)
+update_1_svc(SensorDataParam *argp, struct svc_req *rqstp)
 {
 	static bool_t  result;
-	result = true;
 	/*
 	 * insert server code here
 	 */
 
-
-	auto get_value = database_old.find(argp->dataId);
-
-	if (get_value == database_old.end()) {
-		cout << "dataID not found" << endl;
+	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
 		result = false;
 	} else {
-		database_old.erase(get_value);
-		insert_to_database_old(argp);
-		print_database_old();
+		auto get_value = database_old.find(argp->sensor_data.dataId);
+
+		if (get_value == database_old.end()) {
+			cout << "dataID not found" << endl;
+			result = false;
+		} else {
+			database_old.erase(get_value);
+			insert_to_database_old(&argp->sensor_data);
+			print_database_old();
+			result = true;
+		}
 	}
-
-
 
 	return &result;
 }

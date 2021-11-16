@@ -40,13 +40,13 @@ logout_1(char **argp, CLIENT *clnt)
 }
 
 bool_t *
-load_1(void *argp, CLIENT *clnt)
+load_1(u_long *argp, CLIENT *clnt)
 {
 	static bool_t clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, LOAD,
-		(xdrproc_t) xdr_void, (caddr_t) argp,
+		(xdrproc_t) xdr_u_long, (caddr_t) argp,
 		(xdrproc_t) xdr_bool, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
@@ -55,13 +55,13 @@ load_1(void *argp, CLIENT *clnt)
 }
 
 bool_t *
-store_1(void *argp, CLIENT *clnt)
+store_1(u_long *argp, CLIENT *clnt)
 {
 	static bool_t clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, STORE,
-		(xdrproc_t) xdr_void, (caddr_t) argp,
+		(xdrproc_t) xdr_u_long, (caddr_t) argp,
 		(xdrproc_t) xdr_bool, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
@@ -70,13 +70,13 @@ store_1(void *argp, CLIENT *clnt)
 }
 
 bool_t *
-add_1(SensorData *argp, CLIENT *clnt)
+add_1(SensorDataParam *argp, CLIENT *clnt)
 {
 	static bool_t clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, ADD,
-		(xdrproc_t) xdr_SensorData, (caddr_t) argp,
+		(xdrproc_t) xdr_SensorDataParam, (caddr_t) argp,
 		(xdrproc_t) xdr_bool, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
@@ -85,13 +85,13 @@ add_1(SensorData *argp, CLIENT *clnt)
 }
 
 bool_t *
-del_1(int *argp, CLIENT *clnt)
+del_1(IntegerParam *argp, CLIENT *clnt)
 {
 	static bool_t clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, DEL,
-		(xdrproc_t) xdr_int, (caddr_t) argp,
+		(xdrproc_t) xdr_IntegerParam, (caddr_t) argp,
 		(xdrproc_t) xdr_bool, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
@@ -100,13 +100,13 @@ del_1(int *argp, CLIENT *clnt)
 }
 
 bool_t *
-update_1(SensorData *argp, CLIENT *clnt)
+update_1(SensorDataParam *argp, CLIENT *clnt)
 {
 	static bool_t clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, UPDATE,
-		(xdrproc_t) xdr_SensorData, (caddr_t) argp,
+		(xdrproc_t) xdr_SensorDataParam, (caddr_t) argp,
 		(xdrproc_t) xdr_bool, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);

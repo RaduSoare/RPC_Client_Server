@@ -34,7 +34,7 @@ void show_data_from_mem() {
 
 	
 	for (auto & elem : memDB) {
-		cout << elem->dataId << endl;
+		cout << elem->dataId << " " << elem->noValues << " ";
 		for (int i = 0; i < elem->noValues; i++) {
 			cout << elem->values[i] << " ";
 		}
@@ -163,18 +163,19 @@ int main (int argc, char *argv[])
 				continue;
 			}
 			bool_t  *logout_result;
-			logout_result = logout_1(&(login_result->username), clnt);
+			logout_result = logout_1(login_result, clnt);
 			if (*logout_result == false) {
 				clnt_perror (clnt, "call failed");
 			} else {
 				cout << "Logged out" << endl;
 				memDB.clear();
 				is_logged = false;
+				delete login_result;
 			}
 
 		} else if (input_command == LOAD_CMD) {
 			
-			bool_t  *load_result = load_1((void*)NULL, clnt);
+			bool_t  *load_result = load_1(&(login_result->session_key), clnt);
 			if (*load_result == false) {
 				clnt_perror (clnt, "call failed");
 				
@@ -183,7 +184,7 @@ int main (int argc, char *argv[])
 			load_data_from_disk(filepath);
 
 		} else if (input_command == STORE_CMD) {
-			bool_t  *store_result = store_1((void*)NULL, clnt);
+			bool_t  *store_result = store_1(&(login_result->session_key), clnt);
 			if (*store_result == false) {
 				clnt_perror (clnt, "call failed");
 				
@@ -201,17 +202,23 @@ int main (int argc, char *argv[])
 		} else if (cmd == ADD_CMD) {
 			// De guardat pentru input prost
 			
-
-			SensorData* added_data = new SensorData;
-
-			iss >> added_data->dataId;
-			iss >> added_data->noValues;
-			
-			for (int i = 0; i < added_data->noValues; i++) {
-				iss >> added_data->values[i];
+			if (is_logged == false) {
+				cout << "You are not logged in" << endl;
+				continue;
 			}
 
-			bool_t  *add_result = add_1(added_data, clnt);
+			SensorDataParam* sensor_data_param = new SensorDataParam;
+
+			sensor_data_param->session_key = login_result->session_key;
+
+			iss >> sensor_data_param->sensor_data.dataId;
+			iss >> sensor_data_param->sensor_data.noValues;
+			
+			for (int i = 0; i < sensor_data_param->sensor_data.noValues; i++) {
+				iss >> sensor_data_param->sensor_data.values[i];
+			}
+
+			bool_t  *add_result = add_1(sensor_data_param, clnt);
 			if (*add_result == false) {
 				clnt_perror (clnt, "call failed");
 				continue;
@@ -219,16 +226,18 @@ int main (int argc, char *argv[])
 			
 
 		} else if (cmd == UPDATE_CMD) {
-			SensorData* updated_data = new SensorData;
+			SensorDataParam* sensor_data_param = new SensorDataParam;
 
-			iss >> updated_data->dataId;
-			iss >> updated_data ->noValues;
+			sensor_data_param->session_key = login_result->session_key;
+
+			iss >> sensor_data_param->sensor_data.dataId;
+			iss >> sensor_data_param->sensor_data.noValues;
 			
-			for (int i = 0; i < updated_data->noValues; i++) {
-				iss >> updated_data->values[i];
+			for (int i = 0; i < sensor_data_param->sensor_data.noValues; i++) {
+				iss >> sensor_data_param->sensor_data.values[i];
 			}
 
-			bool_t  *update_result= update_1(updated_data, clnt);
+			bool_t  *update_result= update_1(sensor_data_param, clnt);
 			if (*update_result == false) {
 				clnt_perror (clnt, "call failed");
 				continue;
@@ -236,10 +245,11 @@ int main (int argc, char *argv[])
 
 		} else if (cmd == DEL_CMD) { 
 			
-			int  del_arg;
-			iss >> del_arg;
+			IntegerParam*  del_arg = new IntegerParam;
+			del_arg->session_key = login_result->session_key;
+			iss >> del_arg->value;
 
-			bool_t  *del_result = del_1(&del_arg, clnt);
+			bool_t  *del_result = del_1(del_arg, clnt);
 			if (*del_result == false) {
 				clnt_perror (clnt, "call failed");
 				continue;
