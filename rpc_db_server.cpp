@@ -99,16 +99,27 @@ logout_1_svc(LoginCredentials *argp, struct svc_req *rqstp)
 }
 
 bool_t *
-load_1_svc(u_long *argp, struct svc_req *rqstp)
+load_1_svc(LoadParam *argp, struct svc_req *rqstp)
 {
 	static bool_t  result;
-	// result = true;
 
-	// if (loggedMap.find(*argp) == loggedMap.end()) {
-	// 	result = false;
-	// } else {
-	// 	result = true;
-	// }
+	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
+		result = false;
+	} else {
+		for (int i = 0; i < argp->num; i++) {
+			
+			vector<float> values (argp->clients_data[i].values, argp->clients_data[i].values + argp->clients_data[i].noValues);
+			database[argp->session_key][argp->clients_data[i].dataId] = values;
+
+		// cout << argp->clients_data[i].dataId << " " << argp->clients_data[i].noValues << " ";
+
+		// for (int j = 0; j < argp->clients_data[i].noValues; j++) {
+		// 	cout << argp->clients_data[i].values[j] << " ";
+		// }
+		// cout << endl;
+	}
+		result = true;
+	}
 
 	return &result;
 }
@@ -289,7 +300,6 @@ read_all_1_svc(u_long *argp, struct svc_req *rqstp)
 			count++;
 		}
 		result.num = count;
-		cout << count << " " << result.num << endl;
 	
 	}
  	return &result;

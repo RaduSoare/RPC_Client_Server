@@ -41,10 +41,8 @@ typedef struct StringParam StringParam;
 
 struct LoadParam {
 	u_long session_key;
-	struct {
-		u_int clients_data_len;
-		SensorData *clients_data_val;
-	} clients_data;
+	SensorData clients_data[30];
+	int num;
 };
 typedef struct LoadParam LoadParam;
 
@@ -85,8 +83,8 @@ extern  LoginCredentials * login_1_svc(char **, struct svc_req *);
 extern  bool_t * logout_1(LoginCredentials *, CLIENT *);
 extern  bool_t * logout_1_svc(LoginCredentials *, struct svc_req *);
 #define LOAD 3
-extern  bool_t * load_1(u_long *, CLIENT *);
-extern  bool_t * load_1_svc(u_long *, struct svc_req *);
+extern  bool_t * load_1(LoadParam *, CLIENT *);
+extern  bool_t * load_1_svc(LoadParam *, struct svc_req *);
 #define STORE 4
 extern  bool_t * store_1(u_long *, CLIENT *);
 extern  bool_t * store_1_svc(u_long *, struct svc_req *);

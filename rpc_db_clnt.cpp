@@ -40,13 +40,13 @@ logout_1(LoginCredentials *argp, CLIENT *clnt)
 }
 
 bool_t *
-load_1(u_long *argp, CLIENT *clnt)
+load_1(LoadParam *argp, CLIENT *clnt)
 {
 	static bool_t clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, LOAD,
-		(xdrproc_t) xdr_u_long, (caddr_t) argp,
+		(xdrproc_t) xdr_LoadParam, (caddr_t) argp,
 		(xdrproc_t) xdr_bool, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);

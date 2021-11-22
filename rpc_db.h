@@ -61,10 +61,8 @@ typedef struct AllStatsResp AllStatsResp;
 
 struct LoadParam {
 	u_long session_key;
-	struct {
-		u_int clients_data_len;
-		SensorData *clients_data_val;
-	} clients_data;
+	SensorData clients_data[30];
+	int num;
 };
 typedef struct LoadParam LoadParam;
 

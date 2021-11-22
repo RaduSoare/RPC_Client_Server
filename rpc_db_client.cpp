@@ -71,17 +71,55 @@ void load_data_from_disk(string filepath) {
 	show_data_from_mem();
 }
 
-void store_data_to_disk(string filepath) {
+LoadParam load_data_from_disk_new(string filepath, unsigned long session_key) {
+	
+	string line;
+	fstream fs;
 
-	cout << memDB.size() << endl;
+	fs.open(filepath, std::ios_base::in | std::ios::app);
+	int count = 0;
+	LoadParam load_arg;
+
+	while(getline(fs, line)) {
+
+		SensorData current_data;
+		std::istringstream iss(line);
+		float i;
+		iss >> current_data.dataId;
+		iss >> current_data.noValues;
+		
+		int index = 0;
+		while (iss >> i) {             
+			current_data.values[index++] = i;
+		}
+		//memDB.push_back(current_data);
+		load_arg.clients_data[count] = current_data;
+		count++;
+
+	}
+
+	fs.close();
+
+	load_arg.num = count;
+	load_arg.session_key = session_key;
+
+	return load_arg;
+
+	//show_data_from_mem();
+}
+
+void store_data_to_disk_new(StoreResult* read_all_result, string filepath) {
+
+	
 
 	ofstream ofs (filepath, std::ofstream::in | std::ofstream::trunc);
 
-	for (auto & elem : memDB) {
-		ofs << elem->dataId << " ";
-		ofs << elem->noValues << " ";
-		for (int i = 0; i < elem->noValues; i++) {
-			ofs << elem->values[i] << " ";
+	for (int i = 0; i < read_all_result->num; i++) {
+
+		ofs << read_all_result->clients_data[i].dataId << " " << read_all_result->clients_data[i].noValues << " ";
+
+		for (int j = 0; j < read_all_result->clients_data[i].noValues; j++) {
+			ofs << read_all_result->clients_data[i].values[j] << " ";
 		}
 		ofs << endl;
 	}
@@ -178,30 +216,45 @@ int main (int argc, char *argv[])
 
 		} else if (input_command == LOAD_CMD) {
 			
-			bool_t  *load_result = load_1(&(login_result->session_key), clnt);
+			// bool_t  *load_result = load_1(&(login_result->session_key), clnt);
+			// if (*load_result == false) {
+			// 	clnt_perror (clnt, "call failed");
+				
+			// }
+			// memDB.clear();
+			// load_data_from_disk(filepath);
+			
+
+			LoadParam load_arg = load_data_from_disk_new(filepath, login_result->session_key);
+
+			bool_t  *load_result = load_1(&load_arg, clnt);
 			if (*load_result == false) {
 				clnt_perror (clnt, "call failed");
+				continue;
 				
 			}
-			memDB.clear();
-			load_data_from_disk(filepath);
+
+			cout << "Load done clnt" << endl;
+
+
+
 
 		} else if (input_command == STORE_CMD) {
-			bool_t  *store_result = store_1(&(login_result->session_key), clnt);
-			if (*store_result == false) {
-				clnt_perror (clnt, "call failed");
+			// bool_t  *store_result = store_1(&(login_result->session_key), clnt);
+			// if (*store_result == false) {
+			// 	clnt_perror (clnt, "call failed");
 				
+			// }
+
+			StoreResult* read_all_result = read_all_1(&(login_result->session_key), clnt);
+			if (read_all_result == (StoreResult *) NULL) {
+				cout << "aici nu" << endl;
+				clnt_perror (clnt, "call failed");
 			}
 
-			SensorData* current_data = new SensorData;
-			current_data->dataId = 99;
-			current_data->noValues = 1;
-			//current_data->values = new float[current_data->noValues];
-			current_data->values[0] = 90;
-
-			memDB.push_back(current_data);
 			
-			store_data_to_disk(filepath);
+			store_data_to_disk_new(read_all_result, filepath);
+
 		} else if (cmd == ADD_CMD) {
 			// De guardat pentru input prost
 			

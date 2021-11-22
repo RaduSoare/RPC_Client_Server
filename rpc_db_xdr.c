@@ -104,10 +104,13 @@ xdr_LoadParam (XDR *xdrs, LoadParam *objp)
 {
 	register int32_t *buf;
 
+	int i;
 	 if (!xdr_u_long (xdrs, &objp->session_key))
 		 return FALSE;
-	 if (!xdr_array (xdrs, (char **)&objp->clients_data.clients_data_val, (u_int *) &objp->clients_data.clients_data_len, ~0,
+	 if (!xdr_vector (xdrs, (char *)objp->clients_data, 30,
 		sizeof (SensorData), (xdrproc_t) xdr_SensorData))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->num))
 		 return FALSE;
 	return TRUE;
 }

@@ -47,7 +47,8 @@ struct AllStatsResp
 struct LoadParam
 {
     unsigned long session_key;
-    SensorData clients_data<>;
+    SensorData clients_data[30];
+    int num;
 };
 
 struct StoreResult
