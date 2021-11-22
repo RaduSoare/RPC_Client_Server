@@ -24,6 +24,7 @@ bool is_logged = false;
 #define DEL_CMD "del"
 #define UPDATE_CMD "update"
 #define READ_CMD "read"
+#define READ_ALL_CMD "read_all"
 #define GET_STAT_CMD "get_stat"
 #define GET_STAT_ALL_CMD "get_stat_all"
 
@@ -131,6 +132,7 @@ int main (int argc, char *argv[])
 			// Get username from login command
 			string username;
 			iss >> username;
+			fstream fs;
 			
 			//Check for correct command
 			if (username.empty() ) {
@@ -153,6 +155,7 @@ int main (int argc, char *argv[])
 					cout << "Logged in: " << login_result->username << endl;
 					// Compute the path to the database on the disk
 					filepath = username + ".rpcdb";
+					fs.open(filepath, fstream::in | fstream::out | fstream::app);
 					is_logged = true;
 				}
 
@@ -256,16 +259,36 @@ int main (int argc, char *argv[])
 			} 
 		} else if (cmd == READ_CMD) {
 
-			int  read_arg;
-			iss >> read_arg;
+			IntegerParam*  read_arg = new IntegerParam;
+			read_arg->session_key = login_result->session_key;
+			iss >> read_arg->value;
 
-			bool_t  *read_result = read_1(&read_arg, clnt);
-			if (*read_result == false) {
+			
+			SensorData  *read_result = read_1(read_arg, clnt);
+			if (read_result == NULL) {
 				clnt_perror (clnt, "call failed");
 				continue;
 			}
 
-
+			cout << read_result->dataId << " " << read_result->noValues << endl;
+			for (int i = 0; i < read_result->noValues; i++) {
+				cout << read_result->values[i] << " ";
+			}
+		} else if (cmd == READ_ALL_CMD) {
+			
+			StoreResult* read_all_result = read_all_1(&(login_result->session_key), clnt);
+			if (read_all_result == (StoreResult *) NULL) {
+				cout << "aici nu" << endl;
+				clnt_perror (clnt, "call failed");
+			}
+			
+			// for (int i = 0; i < read_all_result->num; i++) {
+			// 	cout << read_all_result->clients_data[i].dataId << " " << read_all_result->clients_data[i].noValues << " ";
+			// 	for (int j = 0; j < read_all_result->clients_data[i].noValues; j++) {
+			// 		cout << read_all_result->clients_data[i].values[j] << " ";
+			// 	}
+			// 	cout<< endl;
+			// }
 		}
 	}
 	

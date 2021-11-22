@@ -12,7 +12,7 @@
 using namespace std;
 #include "rpc_db.hpp"
 
-vector<SensorData*> memDB;
+
 
 unordered_map<int, vector<float>> database_old;
 
@@ -102,13 +102,13 @@ bool_t *
 load_1_svc(u_long *argp, struct svc_req *rqstp)
 {
 	static bool_t  result;
-	result = true;
+	// result = true;
 
-	if (loggedMap.find(*argp) == loggedMap.end()) {
-		result = false;
-	} else {
-		result = true;
-	}
+	// if (loggedMap.find(*argp) == loggedMap.end()) {
+	// 	result = false;
+	// } else {
+	// 	result = true;
+	// }
 
 	return &result;
 }
@@ -118,26 +118,16 @@ store_1_svc(u_long *argp, struct svc_req *rqstp)
 {
 	static bool_t result;
 
-	if (loggedMap.find(*argp) == loggedMap.end()) {
-		result = false;
-	} else {
-		result = true;
-	}
+	// if (loggedMap.find(*argp) == loggedMap.end()) {
+	// 	result = false;
+	// } else {
+	// 	result = true;
+	// }
 
 
 	return &result;
 }
 
-void print_database_old() {
-	for (auto & entry : database_old) {
-		cout << entry.first << " " << entry.second.size() << " ";
-		for (auto & value : entry.second) {
-			cout << value << " ";
-		}
-		cout<< endl;
-	}
-	cout<< endl << endl;
-}
 
 void print_database(unsigned long session_key) {
 	for (auto & entry : database[session_key]) {
@@ -150,11 +140,6 @@ void print_database(unsigned long session_key) {
 	cout<< endl << endl;
 }
 
-void insert_to_database_old(SensorData *argp) {
-	vector<float> values(argp->values, argp->values + argp->noValues);
-	
-	database_old[argp->dataId] = values;
-}
 
 void insert_to_database(SensorData *argp, unsigned long session_key) {
 	vector<float> values(argp->values, argp->values + argp->noValues);
@@ -184,16 +169,6 @@ add_1_svc(SensorDataParam *argp, struct svc_req *rqstp)
 			result = true;
 		}
 
-		// auto get_value = database_old.find(argp->sensor_data.dataId);
-
-		// if (get_value != database_old.end()) {
-		// 	cout << "dataID not found" << endl;
-		// 	result = false;
-		// } else {
-		// 	insert_to_database_old(&(argp->sensor_data));
-		// 	print_database_old();
-		// 	result = true;
-		// }
 	}
 	return &result;
 }
@@ -209,17 +184,6 @@ del_1_svc(IntegerParam *argp, struct svc_req *rqstp)
 	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
 		result = false;
 	} else {
-		// auto get_value = database_old.find(argp->value);
-
-		// if (get_value == database_old.end()) {
-		// 	cout << "dataID not found" << endl;
-		// 	result = false;
-		// } else {
-		// 	database_old.erase(argp->value);
-		// 	print_database_old();
-		// 	cout << "aici" << endl;
-		// 	result = true;
-		// }
 
 		auto get_value_new = database[argp->session_key].find(argp->value);
 
@@ -252,18 +216,7 @@ update_1_svc(SensorDataParam *argp, struct svc_req *rqstp)
 	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
 		result = false;
 	} else {
-		// auto get_value = database_old.find(argp->sensor_data.dataId);
-
-		// if (get_value == database_old.end()) {
-		// 	cout << "dataID not found" << endl;
-		// 	result = false;
-		// } else {
-		// 	database_old.erase(get_value);
-		// 	insert_to_database_old(&argp->sensor_data);
-		// 	print_database_old();
-		// 	result = true;
-		// }
-
+		//cout << argp->session_key << " " << argp->sensor_data. << endl;
 		auto get_value_new = database[argp->session_key].find(argp->sensor_data.dataId);
 
 		if (get_value_new == database[argp->session_key].end()) {
@@ -280,10 +233,72 @@ update_1_svc(SensorDataParam *argp, struct svc_req *rqstp)
 	return &result;
 }
 
-bool_t *
-read_1_svc(int *argp, struct svc_req *rqstp)
+SensorData getSensorData(unsigned long session_key, int id) {
+	SensorData result1;
+
+	result1.dataId = id;
+	result1.noValues = 0;
+
+	for (auto & element : database[session_key]) {
+		copy(element.second.begin(), element.second.end(), result1.values);
+	}
+
+	cout << result1.values[0];
+
+	return result1;
+
+}
+
+SensorData *
+read_1_svc(IntegerParam *argp, struct svc_req *rqstp)
 {
-	static bool_t  result;
+	static SensorData  result;
+
+	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
+		//result = (SensorData)NULL;
+	} else {
+		auto get_value_new = database[argp->session_key].find(argp->value);
+
+		if (get_value_new == database[argp->session_key].end()) {
+			cout << "dataID not found" << endl;
+		
+		} else {
+			result = getSensorData(argp->session_key, argp->value);
+		}
+	}
+
+	return &result;
+}
+
+StoreResult *
+read_all_1_svc(u_long *argp, struct svc_req *rqstp)
+{
+	static StoreResult result;
+
+
+	if (loggedMap.find(*argp) == loggedMap.end()) {
+		return (StoreResult*)NULL;
+	} else {
+		int count = 0;
+		for (auto & entry : database[*argp]) {
+		
+			result.clients_data[count].dataId = entry.first;
+			result.clients_data[count].noValues = entry.second.size();
+			copy(entry.second.begin(), entry.second.end(), result.clients_data[count].values);
+			cout << result.clients_data[count].dataId << endl;
+			count++;
+		}
+		result.num = count;
+		cout << count << " " << result.num << endl;
+	
+	}
+ 	return &result;
+}
+
+Stats *
+get_stat_1_svc(IntegerParam *argp, struct svc_req *rqstp)
+{
+	static Stats  result;
 
 	/*
 	 * insert server code here
@@ -292,22 +307,10 @@ read_1_svc(int *argp, struct svc_req *rqstp)
 	return &result;
 }
 
-bool_t *
-get_stat_1_svc(int *argp, struct svc_req *rqstp)
-{
-	static bool_t  result;
-
-	/*
-	 * insert server code here
-	 */
-
-	return &result;
-}
-
-bool_t *
+AllStatsResp *
 get_stat_all_1_svc(void *argp, struct svc_req *rqstp)
 {
-	static bool_t  result;
+	static AllStatsResp  result;
 
 	/*
 	 * insert server code here

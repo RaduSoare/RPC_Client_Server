@@ -40,13 +40,13 @@ logout_1(char **argp, CLIENT *clnt)
 }
 
 bool_t *
-load_1(u_long *argp, CLIENT *clnt)
+load_1(LoadParam *argp, CLIENT *clnt)
 {
 	static bool_t clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, LOAD,
-		(xdrproc_t) xdr_u_long, (caddr_t) argp,
+		(xdrproc_t) xdr_LoadParam, (caddr_t) argp,
 		(xdrproc_t) xdr_bool, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
@@ -54,15 +54,15 @@ load_1(u_long *argp, CLIENT *clnt)
 	return (&clnt_res);
 }
 
-bool_t *
+StoreResult *
 store_1(u_long *argp, CLIENT *clnt)
 {
-	static bool_t clnt_res;
+	static StoreResult clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, STORE,
 		(xdrproc_t) xdr_u_long, (caddr_t) argp,
-		(xdrproc_t) xdr_bool, (caddr_t) &clnt_res,
+		(xdrproc_t) xdr_StoreResult, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
 	}
@@ -114,45 +114,60 @@ update_1(SensorDataParam *argp, CLIENT *clnt)
 	return (&clnt_res);
 }
 
-bool_t *
-read_1(int *argp, CLIENT *clnt)
+SensorData *
+read_1(IntegerParam *argp, CLIENT *clnt)
 {
-	static bool_t clnt_res;
+	static SensorData clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, READ,
-		(xdrproc_t) xdr_int, (caddr_t) argp,
-		(xdrproc_t) xdr_bool, (caddr_t) &clnt_res,
+		(xdrproc_t) xdr_IntegerParam, (caddr_t) argp,
+		(xdrproc_t) xdr_SensorData, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
 	}
 	return (&clnt_res);
 }
 
-bool_t *
-get_stat_1(int *argp, CLIENT *clnt)
+StoreResult *
+read_all_1(u_long *argp, CLIENT *clnt)
 {
-	static bool_t clnt_res;
+	static StoreResult clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, READ_ALL,
+		(xdrproc_t) xdr_u_long, (caddr_t) argp,
+		(xdrproc_t) xdr_StoreResult, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+Stats *
+get_stat_1(IntegerParam *argp, CLIENT *clnt)
+{
+	static Stats clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, GET_STAT,
-		(xdrproc_t) xdr_int, (caddr_t) argp,
-		(xdrproc_t) xdr_bool, (caddr_t) &clnt_res,
+		(xdrproc_t) xdr_IntegerParam, (caddr_t) argp,
+		(xdrproc_t) xdr_Stats, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
 	}
 	return (&clnt_res);
 }
 
-bool_t *
+AllStatsResp *
 get_stat_all_1(void *argp, CLIENT *clnt)
 {
-	static bool_t clnt_res;
+	static AllStatsResp clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, GET_STAT_ALL,
 		(xdrproc_t) xdr_void, (caddr_t) argp,
-		(xdrproc_t) xdr_bool, (caddr_t) &clnt_res,
+		(xdrproc_t) xdr_AllStatsResp, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
 	}

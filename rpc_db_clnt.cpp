@@ -129,6 +129,21 @@ read_1(IntegerParam *argp, CLIENT *clnt)
 	return (&clnt_res);
 }
 
+StoreResult *
+read_all_1(u_long *argp, CLIENT *clnt)
+{
+	static StoreResult clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, READ_ALL,
+		(xdrproc_t) xdr_u_long, (caddr_t) argp,
+		(xdrproc_t) xdr_StoreResult, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
 Stats *
 get_stat_1(IntegerParam *argp, CLIENT *clnt)
 {

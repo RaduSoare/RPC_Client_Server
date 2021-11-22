@@ -39,6 +39,21 @@ struct StringParam {
 };
 typedef struct StringParam StringParam;
 
+struct LoadParam {
+	u_long session_key;
+	struct {
+		u_int clients_data_len;
+		SensorData *clients_data_val;
+	} clients_data;
+};
+typedef struct LoadParam LoadParam;
+
+struct StoreResult {
+	SensorData clients_data[30];
+	int num;
+};
+typedef struct StoreResult StoreResult;
+
 struct LoginCredentials {
 	char *username;
 	u_long session_key;
@@ -54,10 +69,8 @@ struct Stats {
 typedef struct Stats Stats;
 
 struct AllStatsResp {
-	struct {
-		u_int stats_len;
-		Stats *stats_val;
-	} stats;
+	Stats stats[30];
+	int count;
 };
 typedef struct AllStatsResp AllStatsResp;
 
@@ -87,14 +100,17 @@ extern  bool_t * del_1_svc(IntegerParam *, struct svc_req *);
 extern  bool_t * update_1(SensorDataParam *, CLIENT *);
 extern  bool_t * update_1_svc(SensorDataParam *, struct svc_req *);
 #define READ 8
-extern  bool_t * read_1(int *, CLIENT *);
-extern  bool_t * read_1_svc(int *, struct svc_req *);
-#define GET_STAT 9
-extern  bool_t * get_stat_1(int *, CLIENT *);
-extern  bool_t * get_stat_1_svc(int *, struct svc_req *);
-#define GET_STAT_ALL 10
-extern  bool_t * get_stat_all_1(void *, CLIENT *);
-extern  bool_t * get_stat_all_1_svc(void *, struct svc_req *);
+extern  SensorData * read_1(IntegerParam *, CLIENT *);
+extern  SensorData * read_1_svc(IntegerParam *, struct svc_req *);
+#define READ_ALL 9
+extern  StoreResult * read_all_1(u_long *, CLIENT *);
+extern  StoreResult * read_all_1_svc(u_long *, struct svc_req *);
+#define GET_STAT 10
+extern  Stats * get_stat_1(IntegerParam *, CLIENT *);
+extern  Stats * get_stat_1_svc(IntegerParam *, struct svc_req *);
+#define GET_STAT_ALL 11
+extern  AllStatsResp * get_stat_all_1(void *, CLIENT *);
+extern  AllStatsResp * get_stat_all_1_svc(void *, struct svc_req *);
 extern int rpc_db_prog_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
@@ -120,14 +136,17 @@ extern  bool_t * del_1_svc();
 extern  bool_t * update_1();
 extern  bool_t * update_1_svc();
 #define READ 8
-extern  bool_t * read_1();
-extern  bool_t * read_1_svc();
-#define GET_STAT 9
-extern  bool_t * get_stat_1();
-extern  bool_t * get_stat_1_svc();
-#define GET_STAT_ALL 10
-extern  bool_t * get_stat_all_1();
-extern  bool_t * get_stat_all_1_svc();
+extern  SensorData * read_1();
+extern  SensorData * read_1_svc();
+#define READ_ALL 9
+extern  StoreResult * read_all_1();
+extern  StoreResult * read_all_1_svc();
+#define GET_STAT 10
+extern  Stats * get_stat_1();
+extern  Stats * get_stat_1_svc();
+#define GET_STAT_ALL 11
+extern  AllStatsResp * get_stat_all_1();
+extern  AllStatsResp * get_stat_all_1_svc();
 extern int rpc_db_prog_1_freeresult ();
 #endif /* K&R C */
 
@@ -138,6 +157,8 @@ extern  bool_t xdr_SensorData (XDR *, SensorData*);
 extern  bool_t xdr_SensorDataParam (XDR *, SensorDataParam*);
 extern  bool_t xdr_IntegerParam (XDR *, IntegerParam*);
 extern  bool_t xdr_StringParam (XDR *, StringParam*);
+extern  bool_t xdr_LoadParam (XDR *, LoadParam*);
+extern  bool_t xdr_StoreResult (XDR *, StoreResult*);
 extern  bool_t xdr_LoginCredentials (XDR *, LoginCredentials*);
 extern  bool_t xdr_Stats (XDR *, Stats*);
 extern  bool_t xdr_AllStatsResp (XDR *, AllStatsResp*);
@@ -147,6 +168,8 @@ extern bool_t xdr_SensorData ();
 extern bool_t xdr_SensorDataParam ();
 extern bool_t xdr_IntegerParam ();
 extern bool_t xdr_StringParam ();
+extern bool_t xdr_LoadParam ();
+extern bool_t xdr_StoreResult ();
 extern bool_t xdr_LoginCredentials ();
 extern bool_t xdr_Stats ();
 extern bool_t xdr_AllStatsResp ();

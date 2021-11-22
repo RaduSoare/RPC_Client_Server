@@ -39,7 +39,21 @@ struct Stats
 
 struct AllStatsResp
 {
-    Stats stats<>;
+    Stats stats[100];
+    int count;
+};
+
+
+struct LoadParam
+{
+    unsigned long session_key;
+    SensorData clients_data<>;
+};
+
+struct StoreResult
+{
+    SensorData clients_data[30];
+    int num;
 };
 
 
@@ -47,14 +61,15 @@ program RPC_DB_PROG {
     version RPC_DB_VER{
         LoginCredentials LOGIN(string) = 1;
         bool LOGOUT(string) = 2;
-        bool LOAD(unsigned long) = 3;
-        bool STORE(unsigned long) = 4;
+        bool LOAD(LoadParam) = 3;
+        StoreResult STORE(unsigned long) = 4;
         bool ADD(SensorDataParam) = 5;
         bool DEL(IntegerParam) = 6;
         bool UPDATE(SensorDataParam) = 7;
-        bool READ(int) = 8;
-        bool GET_STAT(int) = 9;
-        bool GET_STAT_ALL() = 10;
+        SensorData READ(IntegerParam) = 8;
+        StoreResult READ_ALL(unsigned long) = 9;
+        Stats GET_STAT(IntegerParam) = 10;
+        AllStatsResp GET_STAT_ALL() = 11;
     } = 1;
 } = 0xCAFEBABE;
 
