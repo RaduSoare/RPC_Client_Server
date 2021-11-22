@@ -139,10 +139,27 @@ void print_database_old() {
 	cout<< endl << endl;
 }
 
+void print_database(unsigned long session_key) {
+	for (auto & entry : database[session_key]) {
+		cout << entry.first << " " << entry.second.size() << " ";
+		for (auto & value : entry.second) {
+			cout << value << " ";
+		}
+		cout<< endl;
+	}
+	cout<< endl << endl;
+}
+
 void insert_to_database_old(SensorData *argp) {
 	vector<float> values(argp->values, argp->values + argp->noValues);
 	
 	database_old[argp->dataId] = values;
+}
+
+void insert_to_database(SensorData *argp, unsigned long session_key) {
+	vector<float> values(argp->values, argp->values + argp->noValues);
+	
+	database[session_key][argp->dataId] = values;
 }
 
 bool_t *
@@ -154,16 +171,29 @@ add_1_svc(SensorDataParam *argp, struct svc_req *rqstp)
 	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
 		result = false;
 	} else {
-		auto get_value = database_old.find(argp->sensor_data.dataId);
+		
 
-		if (get_value != database_old.end()) {
+		auto get_value_new = database[argp->session_key].find(argp->sensor_data.dataId);
+
+		if (get_value_new != database[argp->session_key].end()) {
 			cout << "dataID not found" << endl;
 			result = false;
 		} else {
-			insert_to_database_old(&(argp->sensor_data));
-			print_database_old();
+			insert_to_database(&(argp->sensor_data), argp->session_key);
+			print_database(argp->session_key);
 			result = true;
 		}
+
+		// auto get_value = database_old.find(argp->sensor_data.dataId);
+
+		// if (get_value != database_old.end()) {
+		// 	cout << "dataID not found" << endl;
+		// 	result = false;
+		// } else {
+		// 	insert_to_database_old(&(argp->sensor_data));
+		// 	print_database_old();
+		// 	result = true;
+		// }
 	}
 	return &result;
 }
@@ -179,14 +209,26 @@ del_1_svc(IntegerParam *argp, struct svc_req *rqstp)
 	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
 		result = false;
 	} else {
-		auto get_value = database_old.find(argp->value);
+		// auto get_value = database_old.find(argp->value);
 
-		if (get_value == database_old.end()) {
+		// if (get_value == database_old.end()) {
+		// 	cout << "dataID not found" << endl;
+		// 	result = false;
+		// } else {
+		// 	database_old.erase(argp->value);
+		// 	print_database_old();
+		// 	cout << "aici" << endl;
+		// 	result = true;
+		// }
+
+		auto get_value_new = database[argp->session_key].find(argp->value);
+
+		if (get_value_new == database[argp->session_key].end()) {
 			cout << "dataID not found" << endl;
 			result = false;
 		} else {
-			database_old.erase(argp->value);
-			print_database_old();
+			database[argp->session_key].erase(argp->value);
+			print_database(argp->session_key);
 			cout << "aici" << endl;
 			result = true;
 		}
@@ -210,15 +252,27 @@ update_1_svc(SensorDataParam *argp, struct svc_req *rqstp)
 	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
 		result = false;
 	} else {
-		auto get_value = database_old.find(argp->sensor_data.dataId);
+		// auto get_value = database_old.find(argp->sensor_data.dataId);
 
-		if (get_value == database_old.end()) {
+		// if (get_value == database_old.end()) {
+		// 	cout << "dataID not found" << endl;
+		// 	result = false;
+		// } else {
+		// 	database_old.erase(get_value);
+		// 	insert_to_database_old(&argp->sensor_data);
+		// 	print_database_old();
+		// 	result = true;
+		// }
+
+		auto get_value_new = database[argp->session_key].find(argp->sensor_data.dataId);
+
+		if (get_value_new == database[argp->session_key].end()) {
 			cout << "dataID not found" << endl;
 			result = false;
 		} else {
-			database_old.erase(get_value);
-			insert_to_database_old(&argp->sensor_data);
-			print_database_old();
+			database[argp->session_key].erase(get_value_new);
+			insert_to_database(&argp->sensor_data, argp->session_key);
+			print_database(argp->session_key);
 			result = true;
 		}
 	}
