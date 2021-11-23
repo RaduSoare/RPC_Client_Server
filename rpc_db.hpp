@@ -107,8 +107,8 @@ extern  StoreResult * read_all_1_svc(u_long *, struct svc_req *);
 extern  Stats * get_stat_1(IntegerParam *, CLIENT *);
 extern  Stats * get_stat_1_svc(IntegerParam *, struct svc_req *);
 #define GET_STAT_ALL 11
-extern  AllStatsResp * get_stat_all_1(void *, CLIENT *);
-extern  AllStatsResp * get_stat_all_1_svc(void *, struct svc_req *);
+extern  AllStatsResp * get_stat_all_1(u_long *, CLIENT *);
+extern  AllStatsResp * get_stat_all_1_svc(u_long *, struct svc_req *);
 extern int rpc_db_prog_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */

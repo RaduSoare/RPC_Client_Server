@@ -61,7 +61,7 @@ struct StoreResult
 program RPC_DB_PROG { 
     version RPC_DB_VER{
         LoginCredentials LOGIN(string) = 1;
-        bool LOGOUT(string) = 2;
+        bool LOGOUT(LoginCredentials) = 2;
         bool LOAD(LoadParam) = 3;
         StoreResult STORE(unsigned long) = 4;
         bool ADD(SensorDataParam) = 5;
@@ -70,7 +70,7 @@ program RPC_DB_PROG {
         SensorData READ(IntegerParam) = 8;
         StoreResult READ_ALL(unsigned long) = 9;
         Stats GET_STAT(IntegerParam) = 10;
-        AllStatsResp GET_STAT_ALL() = 11;
+        AllStatsResp GET_STAT_ALL(unsigned long) = 11;
     } = 1;
 } = 0xCAFEBABE;
 

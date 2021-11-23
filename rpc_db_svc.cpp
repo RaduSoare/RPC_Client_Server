@@ -30,6 +30,7 @@ rpc_db_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		IntegerParam read_1_arg;
 		u_long read_all_1_arg;
 		IntegerParam get_stat_1_arg;
+		u_long get_stat_all_1_arg;
 	} argument;
 	char *result;
 	xdrproc_t _xdr_argument, _xdr_result;
@@ -101,7 +102,7 @@ rpc_db_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		break;
 
 	case GET_STAT_ALL:
-		_xdr_argument = (xdrproc_t) xdr_void;
+		_xdr_argument = (xdrproc_t) xdr_u_long;
 		_xdr_result = (xdrproc_t) xdr_AllStatsResp;
 		local = (char *(*)(char *, struct svc_req *)) get_stat_all_1_svc;
 		break;

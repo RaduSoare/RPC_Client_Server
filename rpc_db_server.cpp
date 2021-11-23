@@ -9,6 +9,8 @@
 #include <vector>
 #include <tuple>
 #include <unordered_map>
+#include <numeric>
+#include <bits/stdc++.h>
 using namespace std;
 #include "rpc_db.hpp"
 
@@ -248,13 +250,11 @@ SensorData getSensorData(unsigned long session_key, int id) {
 	SensorData result1;
 
 	result1.dataId = id;
-	result1.noValues = 0;
+	result1.noValues = database[session_key][id].size();
 
-	for (auto & element : database[session_key]) {
-		copy(element.second.begin(), element.second.end(), result1.values);
-	}
-
-	cout << result1.values[0];
+	
+	copy(database[session_key][id].begin(), database[session_key][id].end(), result1.values);
+	
 
 	return result1;
 
@@ -286,7 +286,7 @@ read_all_1_svc(u_long *argp, struct svc_req *rqstp)
 {
 	static StoreResult result;
 
-
+	//cout << *argp << endl;
 	if (loggedMap.find(*argp) == loggedMap.end()) {
 		return (StoreResult*)NULL;
 	} else {
@@ -305,26 +305,69 @@ read_all_1_svc(u_long *argp, struct svc_req *rqstp)
  	return &result;
 }
 
+float getMin(vector<float> data) {
+	return *min_element(data.begin(), data.end());
+} 
+
+float getMax(vector<float> data) {
+	return *max_element(data.begin(), data.end());
+} 
+
+float getMean(vector<float> data) {
+	return accumulate( data.begin(), data.end(), 0.0 ) / (float)data.size();
+} 
+
+float getMedian(vector<float> data) {
+	int size = data.size();
+
+	if (size == 0) {
+		return 0.f;
+	}
+
+	sort(data.begin(), data.end());
+
+	if (size % 2 != 0) {
+		return data.at(size / 2);
+	} else {
+		return (data.at(size / 2) + data.at(size / 2 - 1)) / 2;
+	}
+} 
+
 Stats *
 get_stat_1_svc(IntegerParam *argp, struct svc_req *rqstp)
 {
 	static Stats  result;
 
-	/*
-	 * insert server code here
-	 */
+	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
+		return (Stats*)NULL;
+	} else {
+		auto get_value_new = database[argp->session_key].find(argp->value);
+
+		if (get_value_new == database[argp->session_key].end()) {
+			cout << "dataID not found" << endl;
+		
+		} else {
+			result.min = getMin(database[argp->session_key][argp->value]);
+			result.max = getMax(database[argp->session_key][argp->value]);
+			result.mean = getMean(database[argp->session_key][argp->value]);
+			result.median = getMedian(database[argp->session_key][argp->value]);
+		}
+	}
+
+	
 
 	return &result;
 }
 
 AllStatsResp *
-get_stat_all_1_svc(void *argp, struct svc_req *rqstp)
+get_stat_all_1_svc(u_long *argp, struct svc_req *rqstp)
 {
 	static AllStatsResp  result;
 
 	/*
 	 * insert server code here
 	 */
+	cout << *argp << " " << 12 << endl;
 
 	return &result;
 }

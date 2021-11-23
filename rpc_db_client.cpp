@@ -216,14 +216,6 @@ int main (int argc, char *argv[])
 
 		} else if (input_command == LOAD_CMD) {
 			
-			// bool_t  *load_result = load_1(&(login_result->session_key), clnt);
-			// if (*load_result == false) {
-			// 	clnt_perror (clnt, "call failed");
-				
-			// }
-			// memDB.clear();
-			// load_data_from_disk(filepath);
-			
 
 			LoadParam load_arg = load_data_from_disk_new(filepath, login_result->session_key);
 
@@ -240,11 +232,6 @@ int main (int argc, char *argv[])
 
 
 		} else if (input_command == STORE_CMD) {
-			// bool_t  *store_result = store_1(&(login_result->session_key), clnt);
-			// if (*store_result == false) {
-			// 	clnt_perror (clnt, "call failed");
-				
-			// }
 
 			StoreResult* read_all_result = read_all_1(&(login_result->session_key), clnt);
 			if (read_all_result == (StoreResult *) NULL) {
@@ -327,6 +314,7 @@ int main (int argc, char *argv[])
 			for (int i = 0; i < read_result->noValues; i++) {
 				cout << read_result->values[i] << " ";
 			}
+
 		} else if (cmd == READ_ALL_CMD) {
 			
 			StoreResult* read_all_result = read_all_1(&(login_result->session_key), clnt);
@@ -335,13 +323,37 @@ int main (int argc, char *argv[])
 				clnt_perror (clnt, "call failed");
 			}
 			
-			// for (int i = 0; i < read_all_result->num; i++) {
-			// 	cout << read_all_result->clients_data[i].dataId << " " << read_all_result->clients_data[i].noValues << " ";
-			// 	for (int j = 0; j < read_all_result->clients_data[i].noValues; j++) {
-			// 		cout << read_all_result->clients_data[i].values[j] << " ";
-			// 	}
-			// 	cout<< endl;
-			// }
+			for (int i = 0; i < read_all_result->num; i++) {
+				cout << read_all_result->clients_data[i].dataId << " " << read_all_result->clients_data[i].noValues << " ";
+				for (int j = 0; j < read_all_result->clients_data[i].noValues; j++) {
+					cout << read_all_result->clients_data[i].values[j] << " ";
+				}
+				cout<< endl;
+			}
+		} else if (cmd == GET_STAT_CMD) {
+
+			IntegerParam  get_stat_arg;
+			get_stat_arg.session_key = login_result->session_key;
+			iss >> get_stat_arg.value;
+
+
+			Stats  *result_10 = get_stat_1(&get_stat_arg, clnt);
+			if (result_10 == (Stats *) NULL) {
+				clnt_perror (clnt, "call failed");
+			};
+			
+			cout << result_10->min << endl;
+			cout << result_10->max << endl;
+			cout << result_10->mean << endl;
+			cout << result_10->median << endl;
+		
+		} else if (cmd == GET_STAT_ALL_CMD) {
+			
+			
+			AllStatsResp  *result_get_stat_all = get_stat_all_1(&login_result->session_key, clnt);
+			if (result_get_stat_all == (AllStatsResp *) NULL) {
+				clnt_perror (clnt, "call failed");
+			}
 		}
 	}
 	
