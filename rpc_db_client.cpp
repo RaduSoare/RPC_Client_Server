@@ -153,17 +153,22 @@ int main (int argc, char *argv[])
 	char * login_arg = (char*)malloc(sizeof(30));
 
 	
-	
+	ifstream infile(argv[2]);
 
-	while (true)
+	while (getline(infile, input_command))
 	{
-		getline(std::cin, input_command);
+		
+		//getline(std::cin, input_command);
 
 		std::istringstream iss(input_command);
+		cout << input_command << endl;
+
 		string cmd;
 
 		// Extract the command
 		iss >> cmd;
+
+
 
 		if (cmd == LOGIN_CMD) {
 
@@ -211,7 +216,7 @@ int main (int argc, char *argv[])
 				cout << "Logged out" << endl;
 				memDB.clear();
 				is_logged = false;
-				delete login_result;
+				//delete login_result;
 			}
 
 		} else if (input_command == LOAD_CMD) {

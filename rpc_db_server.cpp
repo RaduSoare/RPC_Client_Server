@@ -28,14 +28,6 @@ unsigned long current_session_key = 1;
 static unordered_map<unsigned long, string> loggedMap;
 
 
-// bool check_if_logged(char* username) {
-// 	string username_str(username);
-
-// 	if (loggedMap.find(username_str) == loggedMap.end())
-// 		return false;
-	
-// 	return true;
-// }
 
 bool check_if_logged(LoginCredentials* login_credentials) {
 	string username_str(login_credentials->username);
@@ -71,7 +63,6 @@ login_1_svc(char **argp, struct svc_req *rqstp)
 	// Get next available session_key
 	current_session_key++;
 
-	cout << loggedMap[result.session_key] << " : " << loggedMap[result.session_key] << endl;
 
 	return &result;
 }
@@ -95,6 +86,8 @@ logout_1_svc(LoginCredentials *argp, struct svc_req *rqstp)
 	} else {
 		result = false;
 	}
+
+	cout << username_str << " logged out" << endl;
 	
 
 	return &result;
@@ -113,13 +106,8 @@ load_1_svc(LoadParam *argp, struct svc_req *rqstp)
 			vector<float> values (argp->clients_data[i].values, argp->clients_data[i].values + argp->clients_data[i].noValues);
 			database[argp->session_key][argp->clients_data[i].dataId] = values;
 
-		// cout << argp->clients_data[i].dataId << " " << argp->clients_data[i].noValues << " ";
-
-		// for (int j = 0; j < argp->clients_data[i].noValues; j++) {
-		// 	cout << argp->clients_data[i].values[j] << " ";
-		// }
-		// cout << endl;
-	}
+		}
+		cout << "Data was loaded by: " << loggedMap[argp->session_key] << endl;
 		result = true;
 	}
 
@@ -143,6 +131,7 @@ store_1_svc(u_long *argp, struct svc_req *rqstp)
 
 
 void print_database(unsigned long session_key) {
+	cout << endl;
 	for (auto & entry : database[session_key]) {
 		cout << entry.first << " " << entry.second.size() << " ";
 		for (auto & value : entry.second) {
@@ -150,7 +139,7 @@ void print_database(unsigned long session_key) {
 		}
 		cout<< endl;
 	}
-	cout<< endl << endl;
+	cout<< endl;
 }
 
 
@@ -206,7 +195,6 @@ del_1_svc(IntegerParam *argp, struct svc_req *rqstp)
 		} else {
 			database[argp->session_key].erase(argp->value);
 			print_database(argp->session_key);
-			cout << "aici" << endl;
 			result = true;
 		}
 
