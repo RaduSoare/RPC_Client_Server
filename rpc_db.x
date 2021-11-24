@@ -31,6 +31,7 @@ struct LoginCredentials
 
 struct Stats
 {
+    int id;
     float min;
     float max;
     float median;

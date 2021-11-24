@@ -74,6 +74,8 @@ xdr_Stats (XDR *xdrs, Stats *objp)
 {
 	register int32_t *buf;
 
+	 if (!xdr_int (xdrs, &objp->id))
+		 return FALSE;
 	 if (!xdr_float (xdrs, &objp->min))
 		 return FALSE;
 	 if (!xdr_float (xdrs, &objp->max))

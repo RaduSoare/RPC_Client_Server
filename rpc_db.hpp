@@ -59,6 +59,7 @@ struct LoginCredentials {
 typedef struct LoginCredentials LoginCredentials;
 
 struct Stats {
+	int id;
 	float min;
 	float max;
 	float median;

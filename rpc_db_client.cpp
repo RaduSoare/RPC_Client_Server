@@ -359,6 +359,10 @@ int main (int argc, char *argv[])
 			if (result_get_stat_all == (AllStatsResp *) NULL) {
 				clnt_perror (clnt, "call failed");
 			}
+			for (int i = 0; i < result_get_stat_all->count; i++) {
+				cout << result_get_stat_all->stats[i].id << " " << result_get_stat_all->stats[i].min << " " << result_get_stat_all->stats[i].max << " " << result_get_stat_all->stats[i].mean << " " << result_get_stat_all->stats[i].median << endl;
+			}
+
 		}
 	}
 	

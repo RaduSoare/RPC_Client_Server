@@ -284,7 +284,7 @@ read_all_1_svc(u_long *argp, struct svc_req *rqstp)
 			result.clients_data[count].dataId = entry.first;
 			result.clients_data[count].noValues = entry.second.size();
 			copy(entry.second.begin(), entry.second.end(), result.clients_data[count].values);
-			cout << result.clients_data[count].dataId << endl;
+			//cout << result.clients_data[count].dataId << endl;
 			count++;
 		}
 		result.num = count;
@@ -352,10 +352,19 @@ get_stat_all_1_svc(u_long *argp, struct svc_req *rqstp)
 {
 	static AllStatsResp  result;
 
-	/*
-	 * insert server code here
-	 */
-	cout << *argp << " " << 12 << endl;
+	if (loggedMap.find(*argp) == loggedMap.end()) {
+		return (AllStatsResp*)NULL;
+	} else {
+		int counter = 0;
+		for (auto & entry : database[*argp]) {
+			result.stats[counter].id = entry.first;
+			result.stats[counter].min = getMin(entry.second);
+			result.stats[counter].max = getMax(entry.second);
+			result.stats[counter].mean = getMean(entry.second);
+			result.stats[counter++].median = getMedian(entry.second);
+		} 
+		result.count = counter;
+	}
 
 	return &result;
 }
