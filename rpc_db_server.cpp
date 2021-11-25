@@ -38,6 +38,67 @@ bool check_if_logged(LoginCredentials* login_credentials) {
 	return false;
 }
 
+void print_database(unsigned long session_key) {
+	cout << endl;
+	cout << "Current database:" << endl;
+	for (auto & entry : database[session_key]) {
+		cout << entry.first << " " << entry.second.size() << " ";
+		for (auto & value : entry.second) {
+			cout << value << " ";
+		}
+		cout<< endl;
+	}
+	cout<< endl;
+}
+
+void insert_to_database(SensorData *argp, unsigned long session_key) {
+	vector<float> values(argp->values, argp->values + argp->noValues);
+	
+	database[session_key][argp->dataId] = values;
+}
+
+SensorData getSensorData(unsigned long session_key, int id) {
+	SensorData result1;
+
+	result1.dataId = id;
+	result1.noValues = database[session_key][id].size();
+
+	
+	copy(database[session_key][id].begin(), database[session_key][id].end(), result1.values);
+	
+
+	return result1;
+
+}
+
+float getMin(vector<float> data) {
+	return *min_element(data.begin(), data.end());
+} 
+
+float getMax(vector<float> data) {
+	return *max_element(data.begin(), data.end());
+} 
+
+float getMean(vector<float> data) {
+	return accumulate( data.begin(), data.end(), 0.0 ) / (float)data.size();
+} 
+
+float getMedian(vector<float> data) {
+	int size = data.size();
+
+	if (size == 0) {
+		return 0.f;
+	}
+
+	sort(data.begin(), data.end());
+
+	if (size % 2 != 0) {
+		return data.at(size / 2);
+	} else {
+		return (data.at(size / 2) + data.at(size / 2 - 1)) / 2;
+	}
+} 
+
 LoginCredentials *
 login_1_svc(char **argp, struct svc_req *rqstp)
 {
@@ -85,13 +146,13 @@ logout_1_svc(LoginCredentials *argp, struct svc_req *rqstp)
 	// Erase the key from the logged map
 	if (get_value != loggedMap.end() && loggedMap[argp->session_key] == username_str) {
 		loggedMap.erase(argp->session_key);
+		database.erase(argp->session_key);
 		result = true;
+		cout << username_str << " logged out" << endl;
 	} else {
 		result = false;
-	}
 
-	cout << username_str << " logged out" << endl;
-	
+	}
 
 	return &result;
 }
@@ -110,46 +171,12 @@ load_1_svc(LoadParam *argp, struct svc_req *rqstp)
 			database[argp->session_key][argp->clients_data[i].dataId] = values;
 
 		}
-		cout << "Data was loaded by: " << loggedMap[argp->session_key] << endl;
+		//cout << "Data was loaded by: " << loggedMap[argp->session_key] << endl;
+		cout << loggedMap[argp->session_key] << " loaded " << argp->num << " entries " << endl;
 		result = true;
 	}
 
 	return &result;
-}
-
-bool_t *
-store_1_svc(u_long *argp, struct svc_req *rqstp)
-{
-	static bool_t result;
-
-	// if (loggedMap.find(*argp) == loggedMap.end()) {
-	// 	result = false;
-	// } else {
-	// 	result = true;
-	// }
-
-
-	return &result;
-}
-
-
-void print_database(unsigned long session_key) {
-	cout << endl;
-	for (auto & entry : database[session_key]) {
-		cout << entry.first << " " << entry.second.size() << " ";
-		for (auto & value : entry.second) {
-			cout << value << " ";
-		}
-		cout<< endl;
-	}
-	cout<< endl;
-}
-
-
-void insert_to_database(SensorData *argp, unsigned long session_key) {
-	vector<float> values(argp->values, argp->values + argp->noValues);
-	
-	database[session_key][argp->dataId] = values;
 }
 
 bool_t *
@@ -164,7 +191,7 @@ add_1_svc(SensorDataParam *argp, struct svc_req *rqstp)
 		auto get_value_new = database[argp->session_key].find(argp->sensor_data.dataId);
 
 		if (get_value_new != database[argp->session_key].end()) {
-			cout << "dataID not found" << endl;
+			cout << "dataID already exists" << endl;
 			result = false;
 		} else {
 			insert_to_database(&(argp->sensor_data), argp->session_key);
@@ -231,20 +258,6 @@ update_1_svc(SensorDataParam *argp, struct svc_req *rqstp)
 	return &result;
 }
 
-SensorData getSensorData(unsigned long session_key, int id) {
-	SensorData result1;
-
-	result1.dataId = id;
-	result1.noValues = database[session_key][id].size();
-
-	
-	copy(database[session_key][id].begin(), database[session_key][id].end(), result1.values);
-	
-
-	return result1;
-
-}
-
 SensorData *
 read_1_svc(IntegerParam *argp, struct svc_req *rqstp)
 {
@@ -290,34 +303,6 @@ read_all_1_svc(u_long *argp, struct svc_req *rqstp)
  	return &result;
 }
 
-float getMin(vector<float> data) {
-	return *min_element(data.begin(), data.end());
-} 
-
-float getMax(vector<float> data) {
-	return *max_element(data.begin(), data.end());
-} 
-
-float getMean(vector<float> data) {
-	return accumulate( data.begin(), data.end(), 0.0 ) / (float)data.size();
-} 
-
-float getMedian(vector<float> data) {
-	int size = data.size();
-
-	if (size == 0) {
-		return 0.f;
-	}
-
-	sort(data.begin(), data.end());
-
-	if (size % 2 != 0) {
-		return data.at(size / 2);
-	} else {
-		return (data.at(size / 2) + data.at(size / 2 - 1)) / 2;
-	}
-} 
-
 Stats *
 get_stat_1_svc(IntegerParam *argp, struct svc_req *rqstp)
 {
@@ -334,6 +319,7 @@ get_stat_1_svc(IntegerParam *argp, struct svc_req *rqstp)
 			return &result;
 		
 		} else {
+			result.id = argp->value;
 			result.min = getMin(database[argp->session_key][argp->value]);
 			result.max = getMax(database[argp->session_key][argp->value]);
 			result.mean = getMean(database[argp->session_key][argp->value]);
@@ -364,6 +350,19 @@ get_stat_all_1_svc(u_long *argp, struct svc_req *rqstp)
 		} 
 		result.count = counter;
 	}
+
+	return &result;
+}
+
+bool_t *
+store_1_svc(u_long *argp, struct svc_req *rqstp)
+{
+	static bool_t result;
+
+	/*
+	* NOT USED, keept for RPC compatibility
+	*/
+
 
 	return &result;
 }

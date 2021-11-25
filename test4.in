@@ -1,0 +1,23 @@
+logout
+login alice
+login bob
+store
+load
+add 23 1 45
+read 24
+add 24 3 56.67 34.56 12.34
+read 24
+del 25
+del 24
+add 23 2 34 45
+read_all
+get_stat 24
+get_stat 23
+del 23
+get_stat_all
+add 100 5 5 4 3 2 1 
+update 101
+update 100 6 6 5 4 3 2 1
+get_stat_all
+store
+logout alice

@@ -1,4 +1,12 @@
-login miai
-add 1 2 34 45
-add 2 3 7 8 9
+login radu
+load
+add 5 1 1
+update 5 3 56.7 80.2 23.3
+del 5
+add 24 3 101 105.3 45.78
+read 3
+read_all
+get_stat 24
+get_stat_all
 store
+logout 

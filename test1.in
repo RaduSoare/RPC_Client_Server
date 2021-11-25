@@ -1,3 +1,13 @@
 login radu
+add 1 3 56 34 12
+add 2 1 100
+add 3 7 3 13 2 34 11 26 47
+add 4 8 3 13 2 34 11 17 27 47
+del 1
+update 2 2 100 200
+read 2
+read_all
+get_stat 3
+get_stat_all
 store
 logout

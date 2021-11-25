@@ -74,8 +74,6 @@ LoadParam load_data_from_disk_new(string filepath, unsigned long session_key) {
 
 void store_data_to_disk_new(StoreResult* read_all_result, string filepath) {
 
-	
-
 	ofstream ofs (filepath, std::ofstream::in | std::ofstream::trunc);
 
 	for (int i = 0; i < read_all_result->num; i++) {
@@ -113,7 +111,6 @@ int main (int argc, char *argv[])
 
 	string input_command;
 	string filepath;
-
 	LoginCredentials  *login_result;
 	
 
@@ -150,7 +147,7 @@ int main (int argc, char *argv[])
 
 			// Check if user is already logged
 			if (is_logged == true) {
-				cout << "Already logged" << endl;
+				cout << "An user is already logged" << endl;
 				continue;
 			} else {
 
@@ -158,7 +155,7 @@ int main (int argc, char *argv[])
 
 				// If session_key is 0, it means that there was a problem
 				if (login_result->session_key == 0) {
-					clnt_perror (clnt, "call failed");
+					clnt_perror (clnt, "Login failed");
 					continue;
 				} else {
 					cout << "Logged in: " << login_result->username << endl;
@@ -179,7 +176,7 @@ int main (int argc, char *argv[])
 
 			bool_t  *logout_result = logout_1(login_result, clnt);
 			if (*logout_result == ERROR_BOOL) {
-				clnt_perror (clnt, "call failed");
+				clnt_perror (clnt, "Logout Failed");
 				continue;
 			} else {
 				cout << "Logged out" << endl;
@@ -205,7 +202,7 @@ int main (int argc, char *argv[])
 
 			bool_t  *load_result = load_1(&load_arg, clnt);
 			if (*load_result == ERROR_BOOL) {
-				clnt_perror (clnt, "call failed");
+				clnt_perror (clnt, "Load failed");
 				continue;
 				
 			}
@@ -223,12 +220,13 @@ int main (int argc, char *argv[])
 			StoreResult* read_all_result = read_all_1(&(login_result->session_key), clnt);
 			// If number of results is 0, it means that there was no user's data onteh server
 			if (read_all_result->num == 0) {
-				clnt_perror (clnt, "call failed");
+				clnt_perror (clnt, "You don't have data on the server");
 				continue;
 			}
 
 			// Write retrieved data to local database
 			store_data_to_disk_new(read_all_result, filepath);
+			cout << "Store done" << endl;
 
 		} else if (cmd == ADD_CMD) {
 			
@@ -251,7 +249,7 @@ int main (int argc, char *argv[])
 
 			bool_t  *add_result = add_1(sensor_data_param, clnt);
 			if (*add_result == ERROR_BOOL) {
-				clnt_perror (clnt, "call failed");
+				clnt_perror (clnt, "This dataID is already used");
 				continue;
 			}
 			can_load = false;
@@ -278,7 +276,7 @@ int main (int argc, char *argv[])
 
 			bool_t  *update_result= update_1(sensor_data_param, clnt);
 			if (*update_result == ERROR_BOOL) {
-				clnt_perror (clnt, "call failed");
+				clnt_perror (clnt, "This dataID does not exist");
 				continue;
 			}
 			can_load = false;
@@ -291,7 +289,7 @@ int main (int argc, char *argv[])
 
 			bool_t  *del_result = del_1(del_arg, clnt);
 			if (*del_result == ERROR_BOOL) {
-				clnt_perror (clnt, "call failed");
+				clnt_perror (clnt, "This dataID does not exist");
 				continue;
 			} 
 			can_load = false;
@@ -308,10 +306,10 @@ int main (int argc, char *argv[])
 
 			SensorData  *read_result = read_1(read_arg, clnt);
 			if (read_result->dataId == ERROR_CODE) {
-				clnt_perror (clnt, "call failed");
+				clnt_perror (clnt, "This dataID does not exist");
 				continue;
 			}
-
+			cout << "READ:" << endl;
 			cout << read_result->dataId << " " << read_result->noValues << " ";
 			for (int i = 0; i < read_result->noValues; i++) {
 				cout << read_result->values[i] << " ";
@@ -328,10 +326,10 @@ int main (int argc, char *argv[])
 			
 			StoreResult* read_all_result = read_all_1(&(login_result->session_key), clnt);
 			if (read_all_result->num == 0) {
-				clnt_perror (clnt, "call failed");
+				clnt_perror (clnt, "You don't have data on the server");
 				continue;
 			}
-			
+			cout << "READ_ALL:" << endl;
 			for (int i = 0; i < read_all_result->num; i++) {
 				cout << read_all_result->clients_data[i].dataId << " " << read_all_result->clients_data[i].noValues << " ";
 				for (int j = 0; j < read_all_result->clients_data[i].noValues; j++) {
@@ -356,13 +354,14 @@ int main (int argc, char *argv[])
 
 			Stats  *result_10 = get_stat_1(&get_stat_arg, clnt);
 			if (result_10->id == ERROR_CODE) {
-				clnt_perror (clnt, "call failed");
+				clnt_perror (clnt, "This dataID does not exist");
 				continue;
 			};
 			
-			cout << result_10->min << endl;
-			cout << result_10->max << endl;
-			cout << result_10->mean << endl;
+			cout << "STAT:" << endl;
+			cout << result_10->min << " ";
+			cout << result_10->max << " ";
+			cout << result_10->mean << " ";
 			cout << result_10->median << endl;
 		
 		} else if (cmd == GET_STAT_ALL_CMD) {
@@ -374,9 +373,10 @@ int main (int argc, char *argv[])
 
 			AllStatsResp  *result_get_stat_all = get_stat_all_1(&login_result->session_key, clnt);
 			if (result_get_stat_all->count == 0) {
-				clnt_perror (clnt, "call failed");
+				clnt_perror (clnt, "You don't have data on the server");
 				continue;
 			}
+			cout << "ALL STATS:" << endl;
 			for (int i = 0; i < result_get_stat_all->count; i++) {
 				cout << result_get_stat_all->stats[i].id << " " << result_get_stat_all->stats[i].min << " " << result_get_stat_all->stats[i].max << " " << result_get_stat_all->stats[i].mean << " " << result_get_stat_all->stats[i].median << endl;
 			}
@@ -392,6 +392,3 @@ int main (int argc, char *argv[])
 	clnt_destroy (clnt);
 #endif	 /* DEBUG */
 }
-
-
-// de facut functie de destroy care elibereaza memoria si la values

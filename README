@@ -1,0 +1,124 @@
+Soare Radu
+343C5
+Tema1 SPRC
+
+Idee generala:
+
+Client - trimite comenzi prin intermediul unui fisier text care 
+    este parcurs secvential si care este pasat ca argument in linia de comanda
+    atunci cand este rulat clientul
+Server - retine in memoria RAM doua mapari:
+    * o mapare de <session_key, username> *loggedMap* pentru a realiza 
+    managementul utilizatorilor.
+    * o mapare a datelor retinute <session_key, <dataID, values>> *database*
+    pentru a putea separa datele de la clienti in functie de 
+    session_key-ul de la care a venit comanda.
+
+Comenzi oferite de interfata:
+
+LOGIN 
+- CLIENT: 
+    * se citeste username-ul cu care userul doreste sa se logheze,
+    iar daca nu este deja logat primeste un session_key valid 
+    (valid != 0) pe care trebuie sa il trimita impreuna cu celalalte
+    requesturi astfel incat sa ii fie autorizate comenzile.
+    * creeaza un fisier cu numele <username>.rpcdb daca acesta nu exista
+    deja.
+- SERVER: 
+    * se creeaza o noua intrare intre userul logat si
+    urmatorul session_key disponibil in maparea de logging.
+
+LOGOUT
+- CLIENT: 
+    * se deseteaza flagul de logged_in.
+- SERVER: 
+    * se sterge intrarea din loggedMap.
+    * se sterge intrarea din baza de date de la session_key-ul userului delogat
+
+LOAD
+- CLIENT:
+    * deschide pentru citire fisierul corespunzator userului apoi scrie
+    continutul acestuia intr-o structura de tip LoadParam, care este
+    trimisa catre Server.
+- SERVER:
+    * parcurge datele primite si le insereza in baza de date la intrarea
+    corespunzatoare userului care le-a trimis.
+    * anunta userul cate date a incarcat pe server (0 este valid, insemnand ca nu avea
+    o baza de date locala sau nu avea date in acea baza de date).
+
+STORE
+- CLIENT:
+    * foloseste metoda de READ_ALL pentru a obtine datele de la Server si 
+    suprascrie cu acestea datele existente in baza de date proprie de pe 
+    disk.
+- SERVER:
+    * ia toate datele din baza de date de la cheia <session_key> si le
+    intoarce clientului.
+
+ADD
+- CLIENT:
+    * construieste o structura de SensorParam cu datele primite ca input
+    si le trimit catre Server.
+- SERVER:
+    * introduce datele de la Client in baza de date a userului, doar daca dataID-ul nu exista deja in baza de date a userului.
+
+UPDATE
+- CLIENT:
+    * acelasi prinicpiu ca ADD
+- SERVER:
+    * sterge datele cu dataID-ul cerut de client, doar daca dataID-ul exista deja in baza de date a userului.
+
+UPDATE
+- CLIENT:
+- SERVER:
+    * modifica datele de la Client in baza de date a userului, doar daca dataID-ul exista deja in baza de date a userului.
+
+READ
+- CLIENT:
+    * daca dataID-ul specificat exista pe server, atunci primeste si
+    afiseaza datele obtinute.
+- SERVER:
+    * scoate din map intrarea cu cheia ceruta ca dataID
+
+READ_ALL:
+- CLIENT:
+    * daca a trimis date pe Server, primeste o lista cu acestea pe 
+    care o afiseaza.
+- SERVER:
+    * intereaza prin toata baza de date de la cheia session_key si
+    pune fiecare intrare intr-o lista pe care o returneaza.
+
+GET_STAT/GET_STAT_ALL:
+- CLIENT:
+    * afiseaza datele primite
+- SERVER:
+    * extrage din baza de date statisticile pentru intrarea dorita 
+    (GET_STAT) sau parcurge toata baza de date a userului si 
+    genereaza statisticile pentru fiecare intrare, pe care apoi
+    le returneaza sub forma unei liste.
+
+Client generalitati:
+- toate comenzile in afara de LOGIN verifica logarea anterioara.
+- toate comenzile de dupa LOGIN contin in parametru trimis si session_key
+pentru a putea verifica autorizarea Clientului.
+- LOAD se poate executa doar daca nu au fost executate alte comenzi inainte.
+- daca o comanda a intors cod de eroare, se afiseaza un mesaj care sa
+anunte eroarea, apoi trece la urmatoarea comanda.
+
+Server generalitati:
+- serverul afiseaza starea curenta a bazei de date dupa comenzile: ADD, UPDATE, DEL
+pentru a avea un feedback ceva mai clar despre ce se intampla pe server.
+
+Error Handling:
+- Clientul verifica fiecare valoare de return primita de la Server, iar
+in general erorile se disting prin ERROR_CODE/ERROR_BOOL in functie de
+ce returneaza functia respectiva.
+
+Teste:
+- Test1 -> Prima logare a userului, baza de date inexistenta
+
+- Test2: -> Baza de date este deja existenta cu continutul generat in urma testului 1
+
+- Test3: -> Fisierul de test din cerinta
+
+- Test4 : -> Error handling
