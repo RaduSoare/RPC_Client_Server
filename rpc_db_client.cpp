@@ -33,7 +33,7 @@ bool can_load = true;
 
 
 
-LoadParam load_data_from_disk_new(string filepath, unsigned long session_key) {
+LoadParam load_data_from_disk(string filepath, unsigned long session_key) {
 	
 	string line;
 	fstream fs;
@@ -72,7 +72,7 @@ LoadParam load_data_from_disk_new(string filepath, unsigned long session_key) {
 
 }
 
-void store_data_to_disk_new(StoreResult* read_all_result, string filepath) {
+void store_data_to_disk(StoreResult* read_all_result, string filepath) {
 
 	ofstream ofs (filepath, std::ofstream::in | std::ofstream::trunc);
 
@@ -113,7 +113,6 @@ int main (int argc, char *argv[])
 	string filepath;
 	LoginCredentials  *login_result;
 	
-
 
 	ifstream infile(argv[2]);
 
@@ -173,7 +172,6 @@ int main (int argc, char *argv[])
 				cout << "You are not logged in" << endl;
 				continue;
 			}
-
 			bool_t  *logout_result = logout_1(login_result, clnt);
 			if (*logout_result == ERROR_BOOL) {
 				clnt_perror (clnt, "Logout Failed");
@@ -198,7 +196,7 @@ int main (int argc, char *argv[])
 			}
 
 			// Load data from disk in a LoadParam struct 
-			LoadParam load_arg = load_data_from_disk_new(filepath, login_result->session_key);
+			LoadParam load_arg = load_data_from_disk(filepath, login_result->session_key);
 
 			bool_t  *load_result = load_1(&load_arg, clnt);
 			if (*load_result == ERROR_BOOL) {
@@ -225,7 +223,7 @@ int main (int argc, char *argv[])
 			}
 
 			// Write retrieved data to local database
-			store_data_to_disk_new(read_all_result, filepath);
+			store_data_to_disk(read_all_result, filepath);
 			cout << "Store done" << endl;
 
 		} else if (cmd == ADD_CMD) {
@@ -382,6 +380,8 @@ int main (int argc, char *argv[])
 			}
 
 			can_load = false;
+		} else {
+			cout << "alta comanda" << endl;
 		}
 	}
 	

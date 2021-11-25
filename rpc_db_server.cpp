@@ -11,93 +11,14 @@
 #include <unordered_map>
 #include <numeric>
 #include <bits/stdc++.h>
-using namespace std;
+
 #include "rpc_db.hpp"
+#include "server_utils.hpp"
+#include "statistics.hpp"
+
+using namespace std;
 
 
-
-unordered_map<int, vector<float>> database_old;
-
-
-// KEY_SESSION, <DATA_ID, DATA_VECTOR>
-unordered_map<unsigned long, unordered_map<int, vector<float>>> database;
-
-// Keep a reference for a next availabe session_key; 
-unsigned long current_session_key = 1;
-
-// <session_key, user_name>
-static unordered_map<unsigned long, string> loggedMap;
-
-
-
-bool check_if_logged(LoginCredentials* login_credentials) {
-	string username_str(login_credentials->username);
-	if (loggedMap.find(login_credentials->session_key) != loggedMap.end() && loggedMap[login_credentials->session_key] == username_str)
-		return true;
-	
-	return false;
-}
-
-void print_database(unsigned long session_key) {
-	cout << endl;
-	cout << "Current database:" << endl;
-	for (auto & entry : database[session_key]) {
-		cout << entry.first << " " << entry.second.size() << " ";
-		for (auto & value : entry.second) {
-			cout << value << " ";
-		}
-		cout<< endl;
-	}
-	cout<< endl;
-}
-
-void insert_to_database(SensorData *argp, unsigned long session_key) {
-	vector<float> values(argp->values, argp->values + argp->noValues);
-	
-	database[session_key][argp->dataId] = values;
-}
-
-SensorData getSensorData(unsigned long session_key, int id) {
-	SensorData result1;
-
-	result1.dataId = id;
-	result1.noValues = database[session_key][id].size();
-
-	
-	copy(database[session_key][id].begin(), database[session_key][id].end(), result1.values);
-	
-
-	return result1;
-
-}
-
-float getMin(vector<float> data) {
-	return *min_element(data.begin(), data.end());
-} 
-
-float getMax(vector<float> data) {
-	return *max_element(data.begin(), data.end());
-} 
-
-float getMean(vector<float> data) {
-	return accumulate( data.begin(), data.end(), 0.0 ) / (float)data.size();
-} 
-
-float getMedian(vector<float> data) {
-	int size = data.size();
-
-	if (size == 0) {
-		return 0.f;
-	}
-
-	sort(data.begin(), data.end());
-
-	if (size % 2 != 0) {
-		return data.at(size / 2);
-	} else {
-		return (data.at(size / 2) + data.at(size / 2 - 1)) / 2;
-	}
-} 
 
 LoginCredentials *
 login_1_svc(char **argp, struct svc_req *rqstp)
@@ -171,7 +92,7 @@ load_1_svc(LoadParam *argp, struct svc_req *rqstp)
 			database[argp->session_key][argp->clients_data[i].dataId] = values;
 
 		}
-		//cout << "Data was loaded by: " << loggedMap[argp->session_key] << endl;
+		
 		cout << loggedMap[argp->session_key] << " loaded " << argp->num << " entries " << endl;
 		result = true;
 	}
@@ -188,9 +109,9 @@ add_1_svc(SensorDataParam *argp, struct svc_req *rqstp)
 		result = false;
 	} else {
 
-		auto get_value_new = database[argp->session_key].find(argp->sensor_data.dataId);
+		auto get_value = database[argp->session_key].find(argp->sensor_data.dataId);
 
-		if (get_value_new != database[argp->session_key].end()) {
+		if (get_value != database[argp->session_key].end()) {
 			cout << "dataID already exists" << endl;
 			result = false;
 		} else {
@@ -215,9 +136,9 @@ del_1_svc(IntegerParam *argp, struct svc_req *rqstp)
 		result = false;
 	} else {
 
-		auto get_value_new = database[argp->session_key].find(argp->value);
+		auto get_value = database[argp->session_key].find(argp->value);
 
-		if (get_value_new == database[argp->session_key].end()) {
+		if (get_value == database[argp->session_key].end()) {
 			cout << "dataID not found" << endl;
 			result = false;
 		} else {
@@ -241,14 +162,13 @@ update_1_svc(SensorDataParam *argp, struct svc_req *rqstp)
 	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
 		result = false;
 	} else {
-		//cout << argp->session_key << " " << argp->sensor_data. << endl;
-		auto get_value_new = database[argp->session_key].find(argp->sensor_data.dataId);
+		auto get_value = database[argp->session_key].find(argp->sensor_data.dataId);
 
-		if (get_value_new == database[argp->session_key].end()) {
+		if (get_value == database[argp->session_key].end()) {
 			cout << "dataID not found" << endl;
 			result = false;
 		} else {
-			database[argp->session_key].erase(get_value_new);
+			database[argp->session_key].erase(get_value);
 			insert_to_database(&argp->sensor_data, argp->session_key);
 			print_database(argp->session_key);
 			result = true;
@@ -266,9 +186,9 @@ read_1_svc(IntegerParam *argp, struct svc_req *rqstp)
 	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
 		return &result;
 	} else {
-		auto get_value_new = database[argp->session_key].find(argp->value);
+		auto get_value = database[argp->session_key].find(argp->value);
 
-		if (get_value_new == database[argp->session_key].end()) {
+		if (get_value == database[argp->session_key].end()) {
 			cout << "dataID not found" << endl;
 			return &result;
 		} else {
@@ -294,7 +214,6 @@ read_all_1_svc(u_long *argp, struct svc_req *rqstp)
 			result.clients_data[count].dataId = entry.first;
 			result.clients_data[count].noValues = entry.second.size();
 			copy(entry.second.begin(), entry.second.end(), result.clients_data[count].values);
-			//cout << result.clients_data[count].dataId << endl;
 			count++;
 		}
 		result.num = count;
@@ -312,9 +231,9 @@ get_stat_1_svc(IntegerParam *argp, struct svc_req *rqstp)
 	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
 		return &result;
 	} else {
-		auto get_value_new = database[argp->session_key].find(argp->value);
+		auto get_value = database[argp->session_key].find(argp->value);
 
-		if (get_value_new == database[argp->session_key].end()) {
+		if (get_value == database[argp->session_key].end()) {
 			cout << "dataID not found" << endl;
 			return &result;
 		
