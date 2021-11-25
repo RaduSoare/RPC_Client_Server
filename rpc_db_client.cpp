@@ -13,6 +13,7 @@
 using namespace std;
 
 bool is_logged = false;
+bool can_load = true;
 
 
 
@@ -27,59 +28,23 @@ bool is_logged = false;
 #define READ_ALL_CMD "read_all"
 #define GET_STAT_CMD "get_stat"
 #define GET_STAT_ALL_CMD "get_stat_all"
+#define ERROR_CODE -1
+#define ERROR_BOOL false
 
-vector<SensorData*> memDB;
 
-
-void show_data_from_mem() {
-
-	
-	for (auto & elem : memDB) {
-		cout << elem->dataId << " " << elem->noValues << " ";
-		for (int i = 0; i < elem->noValues; i++) {
-			cout << elem->values[i] << " ";
-		}
-		cout << endl;
-	}
-			
-}
-
-void load_data_from_disk(string filepath) {
-	
-	string line;
-	fstream fs;
-
-	fs.open(filepath, std::ios_base::in | std::ios::app);
-
-	while(getline(fs, line)) {
-
-		SensorData* current_data = new SensorData;
-		std::istringstream iss(line);
-		float i;
-		iss >> current_data->dataId;
-		iss >> current_data->noValues;
-		
-		int index = 0;
-		while (iss >> i) {             
-			current_data->values[index++] = i;
-		}
-		memDB.push_back(current_data);
-	}
-
-	fs.close();
-
-	show_data_from_mem();
-}
 
 LoadParam load_data_from_disk_new(string filepath, unsigned long session_key) {
 	
 	string line;
 	fstream fs;
 
+	// Open file for read
 	fs.open(filepath, std::ios_base::in | std::ios::app);
+
 	int count = 0;
 	LoadParam load_arg;
 
+	// Read every line from local database
 	while(getline(fs, line)) {
 
 		SensorData current_data;
@@ -92,7 +57,7 @@ LoadParam load_data_from_disk_new(string filepath, unsigned long session_key) {
 		while (iss >> i) {             
 			current_data.values[index++] = i;
 		}
-		//memDB.push_back(current_data);
+
 		load_arg.clients_data[count] = current_data;
 		count++;
 
@@ -105,7 +70,6 @@ LoadParam load_data_from_disk_new(string filepath, unsigned long session_key) {
 
 	return load_arg;
 
-	//show_data_from_mem();
 }
 
 void store_data_to_disk_new(StoreResult* read_all_result, string filepath) {
@@ -149,17 +113,16 @@ int main (int argc, char *argv[])
 
 	string input_command;
 	string filepath;
-	LoginCredentials  *login_result;
-	char * login_arg = (char*)malloc(sizeof(30));
 
+	LoginCredentials  *login_result;
 	
+
+
 	ifstream infile(argv[2]);
 
 	while (getline(infile, input_command))
 	{
 		
-		//getline(std::cin, input_command);
-
 		std::istringstream iss(input_command);
 		cout << input_command << endl;
 
@@ -177,84 +140,104 @@ int main (int argc, char *argv[])
 			iss >> username;
 			fstream fs;
 			
-			//Check for correct command
+			// Check for correct command
 			if (username.empty() ) {
 				cout << "Invalid username" << endl;
 				continue;
 			}
-
+			char* login_arg = new char[30];
 			strcpy(login_arg, username.c_str());
 
+			// Check if user is already logged
 			if (is_logged == true) {
 				cout << "Already logged" << endl;
 				continue;
 			} else {
 
 				login_result = login_1(&login_arg, clnt);
+
 				// If session_key is 0, it means that there was a problem
 				if (login_result->session_key == 0) {
 					clnt_perror (clnt, "call failed");
+					continue;
 				} else {
 					cout << "Logged in: " << login_result->username << endl;
 					// Compute the path to the database on the disk
 					filepath = username + ".rpcdb";
+					// Create or open user's file
 					fs.open(filepath, fstream::in | fstream::out | fstream::app);
 					is_logged = true;
 				}
 
 			}
 		} else if (input_command == LOGOUT_CMD) {
+			// Cannot execute this command if you're not logged in
 			if (is_logged == false) {
 				cout << "You are not logged in" << endl;
 				continue;
 			}
-			bool_t  *logout_result;
-			logout_result = logout_1(login_result, clnt);
-			if (*logout_result == false) {
+
+			bool_t  *logout_result = logout_1(login_result, clnt);
+			if (*logout_result == ERROR_BOOL) {
 				clnt_perror (clnt, "call failed");
+				continue;
 			} else {
 				cout << "Logged out" << endl;
-				memDB.clear();
 				is_logged = false;
-				//delete login_result;
 			}
 
 		} else if (input_command == LOAD_CMD) {
-			
 
+			// Cannot execute this command if you're not logged in
+			if (is_logged == false) {
+				cout << "You are not logged in" << endl;
+				continue;
+			}
+			
+			// Cannot execute this command if the users executed other commands before
+			if (can_load == false) {
+				cout << "Cannot execute LOAD command" << endl;
+				continue;
+			}
+
+			// Load data from disk in a LoadParam struct 
 			LoadParam load_arg = load_data_from_disk_new(filepath, login_result->session_key);
 
 			bool_t  *load_result = load_1(&load_arg, clnt);
-			if (*load_result == false) {
+			if (*load_result == ERROR_BOOL) {
 				clnt_perror (clnt, "call failed");
 				continue;
 				
 			}
-
-			cout << "Load done clnt" << endl;
-
-
-
+			cout << "Load done" << endl;
 
 		} else if (input_command == STORE_CMD) {
 
-			StoreResult* read_all_result = read_all_1(&(login_result->session_key), clnt);
-			if (read_all_result == (StoreResult *) NULL) {
-				cout << "aici nu" << endl;
-				clnt_perror (clnt, "call failed");
+			// Cannot execute this command if you're not logged in
+			if (is_logged == false) {
+				cout << "You are not logged in" << endl;
+				continue;
 			}
 
-			
+			// Read user's data from the server using same functionality as READ_ALL
+			StoreResult* read_all_result = read_all_1(&(login_result->session_key), clnt);
+			// If number of results is 0, it means that there was no user's data onteh server
+			if (read_all_result->num == 0) {
+				clnt_perror (clnt, "call failed");
+				continue;
+			}
+
+			// Write retrieved data to local database
 			store_data_to_disk_new(read_all_result, filepath);
 
 		} else if (cmd == ADD_CMD) {
-			// De guardat pentru input prost
 			
 			if (is_logged == false) {
 				cout << "You are not logged in" << endl;
 				continue;
 			}
 
+			// Compute new data from user input
 			SensorDataParam* sensor_data_param = new SensorDataParam;
 
 			sensor_data_param->session_key = login_result->session_key;
@@ -267,15 +250,23 @@ int main (int argc, char *argv[])
 			}
 
 			bool_t  *add_result = add_1(sensor_data_param, clnt);
-			if (*add_result == false) {
+			if (*add_result == ERROR_BOOL) {
 				clnt_perror (clnt, "call failed");
 				continue;
 			}
+			can_load = false;
 			
 
 		} else if (cmd == UPDATE_CMD) {
-			SensorDataParam* sensor_data_param = new SensorDataParam;
 
+			if (is_logged == false) {
+				cout << "You are not logged in" << endl;
+				continue;
+			}
+
+			SensorDataParam* sensor_data_param = new SensorDataParam;
+			
+			// Compute new data from user input
 			sensor_data_param->session_key = login_result->session_key;
 
 			iss >> sensor_data_param->sensor_data.dataId;
@@ -286,10 +277,11 @@ int main (int argc, char *argv[])
 			}
 
 			bool_t  *update_result= update_1(sensor_data_param, clnt);
-			if (*update_result == false) {
+			if (*update_result == ERROR_BOOL) {
 				clnt_perror (clnt, "call failed");
 				continue;
 			}
+			can_load = false;
 
 		} else if (cmd == DEL_CMD) { 
 			
@@ -298,34 +290,46 @@ int main (int argc, char *argv[])
 			iss >> del_arg->value;
 
 			bool_t  *del_result = del_1(del_arg, clnt);
-			if (*del_result == false) {
+			if (*del_result == ERROR_BOOL) {
 				clnt_perror (clnt, "call failed");
 				continue;
 			} 
+			can_load = false;
 		} else if (cmd == READ_CMD) {
+
+			if (is_logged == false) {
+				cout << "You are not logged in" << endl;
+				continue;
+			}
 
 			IntegerParam*  read_arg = new IntegerParam;
 			read_arg->session_key = login_result->session_key;
 			iss >> read_arg->value;
 
-			
 			SensorData  *read_result = read_1(read_arg, clnt);
-			if (read_result == NULL) {
+			if (read_result->dataId == ERROR_CODE) {
 				clnt_perror (clnt, "call failed");
 				continue;
 			}
 
-			cout << read_result->dataId << " " << read_result->noValues << endl;
+			cout << read_result->dataId << " " << read_result->noValues << " ";
 			for (int i = 0; i < read_result->noValues; i++) {
 				cout << read_result->values[i] << " ";
 			}
+			cout << endl;
+			can_load = false;
 
 		} else if (cmd == READ_ALL_CMD) {
+
+			if (is_logged == false) {
+				cout << "You are not logged in" << endl;
+				continue;
+			}
 			
 			StoreResult* read_all_result = read_all_1(&(login_result->session_key), clnt);
-			if (read_all_result == (StoreResult *) NULL) {
-				cout << "aici nu" << endl;
+			if (read_all_result->num == 0) {
 				clnt_perror (clnt, "call failed");
+				continue;
 			}
 			
 			for (int i = 0; i < read_all_result->num; i++) {
@@ -335,7 +339,15 @@ int main (int argc, char *argv[])
 				}
 				cout<< endl;
 			}
+
+			can_load = false;
+
 		} else if (cmd == GET_STAT_CMD) {
+
+			if (is_logged == false) {
+				cout << "You are not logged in" << endl;
+				continue;
+			}
 
 			IntegerParam  get_stat_arg;
 			get_stat_arg.session_key = login_result->session_key;
@@ -343,8 +355,9 @@ int main (int argc, char *argv[])
 
 
 			Stats  *result_10 = get_stat_1(&get_stat_arg, clnt);
-			if (result_10 == (Stats *) NULL) {
+			if (result_10->id == ERROR_CODE) {
 				clnt_perror (clnt, "call failed");
+				continue;
 			};
 			
 			cout << result_10->min << endl;
@@ -354,15 +367,21 @@ int main (int argc, char *argv[])
 		
 		} else if (cmd == GET_STAT_ALL_CMD) {
 			
-			
+			if (is_logged == false) {
+				cout << "You are not logged in" << endl;
+				continue;
+			}
+
 			AllStatsResp  *result_get_stat_all = get_stat_all_1(&login_result->session_key, clnt);
-			if (result_get_stat_all == (AllStatsResp *) NULL) {
+			if (result_get_stat_all->count == 0) {
 				clnt_perror (clnt, "call failed");
+				continue;
 			}
 			for (int i = 0; i < result_get_stat_all->count; i++) {
 				cout << result_get_stat_all->stats[i].id << " " << result_get_stat_all->stats[i].min << " " << result_get_stat_all->stats[i].max << " " << result_get_stat_all->stats[i].mean << " " << result_get_stat_all->stats[i].median << endl;
 			}
 
+			can_load = false;
 		}
 	}
 	

@@ -1,5 +1,3 @@
 login radu
-load
-read_all
-get_stat_all
-
+store
+logout

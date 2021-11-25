@@ -22,9 +22,10 @@ unordered_map<int, vector<float>> database_old;
 // KEY_SESSION, <DATA_ID, DATA_VECTOR>
 unordered_map<unsigned long, unordered_map<int, vector<float>>> database;
 
+// Keep a reference for a next availabe session_key; 
 unsigned long current_session_key = 1;
 
-
+// <session_key, user_name>
 static unordered_map<unsigned long, string> loggedMap;
 
 
@@ -78,8 +79,10 @@ logout_1_svc(LoginCredentials *argp, struct svc_req *rqstp)
 
 	string username_str(argp->username);
 
+	// Find entry for the current session_key
 	auto get_value = loggedMap.find(argp->session_key);
 
+	// Erase the key from the logged map
 	if (get_value != loggedMap.end() && loggedMap[argp->session_key] == username_str) {
 		loggedMap.erase(argp->session_key);
 		result = true;
@@ -153,12 +156,10 @@ bool_t *
 add_1_svc(SensorDataParam *argp, struct svc_req *rqstp)
 {
 	static bool_t  result;
-	result = true;
 
 	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
 		result = false;
 	} else {
-		
 
 		auto get_value_new = database[argp->session_key].find(argp->sensor_data.dataId);
 
@@ -200,8 +201,6 @@ del_1_svc(IntegerParam *argp, struct svc_req *rqstp)
 
 	}
 
-	
-
 	return &result;
 
 }
@@ -210,9 +209,7 @@ bool_t *
 update_1_svc(SensorDataParam *argp, struct svc_req *rqstp)
 {
 	static bool_t  result;
-	/*
-	 * insert server code here
-	 */
+
 
 	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
 		result = false;
@@ -252,15 +249,15 @@ SensorData *
 read_1_svc(IntegerParam *argp, struct svc_req *rqstp)
 {
 	static SensorData  result;
-
+	result.dataId = -1;
 	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
-		//result = (SensorData)NULL;
+		return &result;
 	} else {
 		auto get_value_new = database[argp->session_key].find(argp->value);
 
 		if (get_value_new == database[argp->session_key].end()) {
 			cout << "dataID not found" << endl;
-		
+			return &result;
 		} else {
 			result = getSensorData(argp->session_key, argp->value);
 		}
@@ -273,10 +270,10 @@ StoreResult *
 read_all_1_svc(u_long *argp, struct svc_req *rqstp)
 {
 	static StoreResult result;
-
-	//cout << *argp << endl;
+	
+	
 	if (loggedMap.find(*argp) == loggedMap.end()) {
-		return (StoreResult*)NULL;
+		return &result;
 	} else {
 		int count = 0;
 		for (auto & entry : database[*argp]) {
@@ -325,14 +322,16 @@ Stats *
 get_stat_1_svc(IntegerParam *argp, struct svc_req *rqstp)
 {
 	static Stats  result;
+	result.id = -1;
 
 	if (loggedMap.find(argp->session_key) == loggedMap.end()) {
-		return (Stats*)NULL;
+		return &result;
 	} else {
 		auto get_value_new = database[argp->session_key].find(argp->value);
 
 		if (get_value_new == database[argp->session_key].end()) {
 			cout << "dataID not found" << endl;
+			return &result;
 		
 		} else {
 			result.min = getMin(database[argp->session_key][argp->value]);
